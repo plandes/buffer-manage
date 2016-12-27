@@ -7,7 +7,7 @@ OBJECTS=	$(ELS:.el=.elc)
 
 
 .PHONY:		all
-all:		package
+all:		test
 
 .PHONY:		info
 info:
@@ -19,7 +19,7 @@ info:
 
 # lifecycle
 elpa:
-		$(CASK) install
+		$(CASK) install || true
 		$(CASK) update
 		touch $@
 
@@ -31,7 +31,7 @@ test:		elpa cleantest
 		$(CASK) exec ert-runner -L $(LISP_DIR) -L .
 
 .PHONY:		package
-package:
+package:	test
 		$(CASK) package
 
 # clean
