@@ -7,7 +7,7 @@ OBJECTS=	$(ELS:.el=.elc)
 
 
 .PHONY:		all
-all:		test
+all:		package
 
 .PHONY:		info
 info:
