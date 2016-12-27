@@ -1,6 +1,7 @@
-[![Build Status](https://travis-ci.org/plandes/buffer-manage.svg?branch=master)](https://travis-ci.org/plandes/buffer-manage.svg)
+# Manager Emacs Buffers [![Travis CI Build Status][travis-badge]][travis-link]
 
-# Manager Emacs Buffers
+  [travis-link]: https://travis-ci.org/plandes/buffer-manage
+  [travis-badge]: https://travis-ci.org/plandes/buffer-manage.svg?branch=master
 
 Provides support to manage buffers of any kind.  This is helpful for using
 multiple inferior shells, multiple SQL session buffers or any other piped
