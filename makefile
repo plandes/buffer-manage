@@ -1,7 +1,10 @@
+APP_NAME ?=	$(shell grep package-file Cask | sed 's/.*lisp\/\(.*\)\.el.*/\1/')
 EMACS ?=	emacs
 EMACSFLAGS =	-L .
 CASK ?=		cask
 LISP_DIR=	lisp
+DOC_DIR=	doc
+ELPA_FILE=	elpa
 ELS=		$(wildcard $(LISP_DIR)/*.el)
 OBJECTS=	$(ELS:.el=.elc)
 
@@ -11,27 +14,34 @@ all:		package
 
 .PHONY:		info
 info:
-		@echo "version: $(VERSION)"
+		@echo "app name: $(APP_NAME)"
 
 # patterns
 %.elc:		%.el
 		$(CASK) build
 
 # lifecycle
-elpa:
+$(ELPA_FILE):
 		$(CASK) install || true
 		$(CASK) update
 		touch $@
 
 .PHONY:		build
-build:		elpa $(OBJECTS)
+build:		$(ELPA_FILE) $(OBJECTS)
 
 .PHONY:		test
-test:		elpa cleantest
+test:		$(ELPA_FILE) cleantest
 		$(CASK) exec ert-runner -L $(LISP_DIR) -L .
 
+$(DOC_DIR):
+		mkdir -p $(DOC_DIR)
+		pandoc README.md -s -o $(DOC_DIR)/$(APP_NAME).texi
+
+.PHONY:		mkdoc
+mkdoc:		$(DOC_DIR)
+
 .PHONY:		package
-package:	test
+package:	test mkdoc
 		$(CASK) package
 
 # clean
@@ -41,7 +51,7 @@ cleantest:
 
 .PHONY:		clean
 clean:		cleantest
-		rm -rf elpa dist
+		rm -rf $(ELPA_FILE) dist $(DOC_DIR)
 
 .PHONY:		cleanall
 cleanall:	clean
