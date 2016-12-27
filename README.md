@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/plandes/buffer-manage.svg?branch=master)](https://travis-ci.org/plandes/buffer-manage.svg)
+
 # Manager Emacs Buffers
 
 Provides support to manage buffers of any kind.  This is helpful for using
