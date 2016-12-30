@@ -1,4 +1,4 @@
-# Manager Emacs Buffers  [![MELPA badge][melpa-badge]][melpa-link] [![Travis CI Build Status][travis-badge]][travis-link]
+# Manager Emacs Buffers [![MELPA badge][melpa-badge]][melpa-link] [![MELPA stable badge][melpa-stable-badge]][melpa-stable-link] [![Travis CI Build Status][travis-badge]][travis-link]
 
   [melpa-link]: https://melpa.org/#/buffer-manage
   [melpa-stable-link]: https://stable.melpa.org/#/buffer-manage
