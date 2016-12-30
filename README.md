@@ -33,3 +33,10 @@ can be done in ~90 lines of code
 To create your own managed buffer set you must extend `buffer-entry` that
 defines behavior for each created managed buffer.  You must also extend the
 manager itself `buffer-manager`.
+
+
+## License
+
+Copyright © 2017 Paul Landes
+
+GNU Lesser General Public License, Version 2.0
