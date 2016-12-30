@@ -3,9 +3,6 @@
 (source melpa)
 
 (depends-on "noflet")
-(depends-on "choice-program"
-	    :git "https://github.com/plandes/choice-program"
-	    :files ("lisp/*.el"))
 
 (package-file "lisp/buffer-manage.el")
 
