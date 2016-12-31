@@ -35,6 +35,14 @@ defines behavior for each created managed buffer.  You must also extend the
 manager itself `buffer-manager`.
 
 
+## Key Bindings
+
+The customize system persists the key bindings for all buffer managers.  You
+can view or modify the buffer management functions with: `M-x
+customize-variable buffer-manage-key-bindings`.  You'll see other registered
+buffer manager extensions in for this customized variable.
+
+
 ## License
 
 Copyright © 2017 Paul Landes
