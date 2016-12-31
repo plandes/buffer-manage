@@ -485,7 +485,7 @@ If ASSERTP is non-nil, raise an error if there is no such entry."
   (let ((entry (dolist (entry (oref this :entries))
 		 (if (and (funcall include-fn entry)
 			  (not (funcall exclude-fn entry)))
-		     (return entry)))))
+		     (cl-return entry)))))
     (if (and assertp (null entry))
 	(error "No first entry"))
     entry))
@@ -499,7 +499,7 @@ If ASSERTP is non-nil, raise an error if there is no such entry."
 				(with-current-buffer (window-buffer win)
 				  (if (and (boundp 'buffer-entry-instance)
 					   (eq buffer-entry-instance entry))
-				      (return t)))))
+				      (cl-return t)))))
 			  exclude-fn))
 
 (defmethod buffer-manager-current-instance ((this buffer-manager)
@@ -601,7 +601,7 @@ The default uses:
 			  (eq (car entries) cur-entry)))
 		 (setq entries bak-entries)))
 	   (or
-	    (case method
+	    (cl-case method
 	      (last-visit (or
 			   ;; win-entries is nil if no entries
 			   (car win-entries)
@@ -956,14 +956,14 @@ In this buffer, you can rename and go to %ss"
 		  (cadr (assoc (buffer-manager-name this)
 			       buffer-manage-key-bindings))))
     (dolist (binding bindings)
-      (let ((def (cadr (assoc (first binding) funcs)))
+      (let ((def (cadr (assoc (cl-first binding) funcs)))
 	    (keymap (cl-second binding))
-	    (key (read-kbd-macro (third binding))))
+	    (key (read-kbd-macro (cl-third binding))))
 	(setq keymap (if keymap (symbol-value keymap) (current-global-map)))
 	(define-key keymap key (cl-second def))
 	(message "Bound function `%S' key `%s' on %S"
 		 (cl-second def)
-		 (third binding)
+		 (cl-third binding)
 		 (or (cl-second binding) 'global))))))
 
 (defmethod buffer-manager-key-bindings ((this buffer-manager)) nil)
