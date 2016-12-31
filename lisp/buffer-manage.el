@@ -7,7 +7,7 @@
 ;; Maintainer: Paul Landes
 ;; Keywords: interactive buffer management
 ;; URL: https://github.com/plandes/buffer-manage
-;; Package-Requires: ((noflet "0.0.15") (choice-program "0.1"))
+;; Package-Requires: ((emacs "24") (noflet "0.0.15") (choice-program "0.1"))
 
 ;; This file is not part of GNU Emacs.
 

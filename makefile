@@ -30,7 +30,7 @@ $(ELPA_FILE):
 build:		$(ELPA_FILE) $(OBJECTS)
 
 .PHONY:		test
-test:		$(ELPA_FILE) cleantest
+test:		build cleantest
 		$(CASK) exec ert-runner -L $(LISP_DIR) -L .
 
 $(DOC_DIR):
