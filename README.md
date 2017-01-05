@@ -37,7 +37,7 @@ manager itself `buffer-manager`.
 
 ## Extending Packages
 
-This library on it's own isn't useful.  It provides a lot of behavior for
+This library on its own isn't useful.  It provides a lot of behavior for
 packages that extend it (called *extensions*).  An example of an extension is
 the [buffer shell](https://github.com/plandes/bshell) library and the iSQL
 library (to be made public soon).
