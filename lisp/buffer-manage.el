@@ -216,7 +216,7 @@ it and let the garbage collector get it."
 	    first)))))
 
 (defmethod buffer-entry-rename ((this buffer-entry) name)
-  "Rename the shell entry to NAME and return the new entry.
+  "Rename the buffer entry to NAME and return the new entry.
 Note that NAME is not buffer name syntax, it is the name of the
 entry."
   (buffer-entry-live-p this t)
@@ -304,7 +304,7 @@ are in the current frame."
    (read-history :initform nil
 		 :protection :private
 		 :documentation "\
-Used for history when reading user input when switching to other shells."
+Used for history when reading user input when switching to other buffers."
 		 )
    ;; careful: this slot keeps stale entries after they've been removed/killed
    (last-switched-to :initform nil
@@ -676,7 +676,7 @@ If the buffer CRITERIA is the name of the buffer to switch to, go to that
 buffer, otherwise, create a new one with that name and switch to it.
 Returns the buffer entry we switched to based on CRITERIA \(see
 `buffer-manager-entry').
-NEW-FRAME-P, if non-`nil', create a new frame and switch to the new shell in
+NEW-FRAME-P, if non-`nil', create a new frame and switch to the new buffer in
 it.
 WINDOW-CFG, if non-`nil', split the window based on the value, which is
 currently just the symbol `split'."
@@ -729,7 +729,7 @@ Otherwise the default is selected an entry that isn't currently in any window
 in the current frame.
 
 NAME-FN, if non-`nil' use to create a name when prompting the user for each
-shell.  The default is `buffer-entry-name'."
+buffer.  The default is `buffer-entry-name'."
   (setq name-fn (or name-fn 'buffer-entry-name))
   (let ((entries (buffer-manager-entries this))
 	def-entry def name-map)
@@ -1048,11 +1048,11 @@ binding (see `buffer-manager-read-bind-choices')."
 ;; face definitions
 (defface buffer-manage-font-lock-headers-face
   '((t (:foreground "red")))
-  "Font Lock mode face used to highlight shell headerss."
+  "Font Lock mode face used to highlight buffer headerss."
   :group 'buffer-manage-font-lock-faces)
 (defface buffer-manage-font-lock-name-face
   '((t (:foreground "darkcyan")))
-  "Font Lock mode face used to highlight shell names."
+  "Font Lock mode face used to highlight buffer names."
   :group 'buffer-manage-font-lock-faces)
 (defface buffer-manage-font-lock-wd-face
   '((t (:foreground "blue")))
@@ -1099,7 +1099,7 @@ binding (see `buffer-manager-read-bind-choices')."
       (set-window-configuration cfg))))
 
 (defun buffer-manage-mode-name-at-point ()
-  "Return the name of the shell at the current point if there is one."
+  "Return the name of the buffer at the current point if there is one."
   (buffer-manage-mode-assert)
   (save-excursion
     (beginning-of-line)
@@ -1124,8 +1124,8 @@ EVENT mouse event data."
     (if (string= name buffer-manage-on-mouse-down)
 	(buffer-manage-mode-activate-buffer name))))
 
-(defun buffer-manage-mode-first-shell ()
-  "Go to the first shell entry in the shell listing."
+(defun buffer-manage-mode-first-buffer ()
+  "Go to the first buffer entry in the buffer listing."
   (goto-char (point-min))
   (forward-line 2))
 
@@ -1146,7 +1146,7 @@ EVENT mouse event data."
       (forward-line -1)))
 
 (defun buffer-manage-mode-activate-buffer (&optional name)
-  "Activates the shell entry with name NAME."
+  "Activates the buffer entry with name NAME."
   (interactive)
   (buffer-manage-mode-assert)
   (setq name (or name (buffer-manage-mode-name-at-point)))
@@ -1156,7 +1156,7 @@ EVENT mouse event data."
     (buffer-manager-switch this name)))
 
 (defun buffer-manage-mode-view (&optional name)
-  "Activates the shell entry with name NAME."
+  "Activates the buffer entry with name NAME."
   (interactive)
   (buffer-manage-mode-assert)
   (setq name (or name (buffer-manage-mode-name-at-point)))
@@ -1174,7 +1174,7 @@ EVENT mouse event data."
       (buffer-manage-mode-next))))
 
 (defun buffer-manage-mode-refresh ()
-  "Refresh the shell entry listing buffer."
+  "Refresh the buffer entry listing buffer."
   (interactive)
   (buffer-manage-mode-assert)
   (let ((line (1+ (count-lines (point-min) (point)))))
@@ -1188,17 +1188,17 @@ EVENT mouse event data."
     (set-window-point (get-buffer-window (current-buffer)) (point))))
 
 (defun buffer-manage-mode-mark-delete ()
-  "Delete a shell (termiante)."
+  "Delete a buffer (terminate)."
   (interactive)
   (buffer-manage-mode-set-status 'to-delete))
 
 (defun buffer-manage-mode-mark-show ()
-  "Display \(show) a shell (termiante)."
+  "Display \(show) a buffer."
   (interactive)
   (buffer-manage-mode-set-status 'to-show))
 
 (defun buffer-manage-mode-mark-undelete ()
-  "Delete a shell (termiante)."
+  "Unmark a buffer for deletion."
   (interactive)
   (buffer-manage-mode-set-status 'alive))
 
@@ -1238,7 +1238,7 @@ value of FUNC."
       (buffer-manager-display-given-entries this entries))))
 
 (defun buffer-manage-mode-rename (new-name)
-  "Rename a shell to NEW-NAME."
+  "Rename a buffer to NEW-NAME."
   (interactive
    (progn
      (buffer-manage-mode-assert)
@@ -1302,7 +1302,7 @@ Special commands:
 	["Quit" buffer-manage-mode-quit t]))
 
 (defun buffer-manage-list (manager-instance buffer-name)
-  "Create a listing of shells used for viewing, renameing, deleting, adding.
+  "Create a listing of buffers used for viewing, renameing, deleting, adding.
 MANAGER-INSTANCE is the `buffer-manager' singleton instance.
 BUFFER-NAME is the name of the buffer holding the entries for the mode."
   (let ((buf (get-buffer buffer-name)))
@@ -1316,7 +1316,7 @@ BUFFER-NAME is the name of the buffer holding the entries for the mode."
 	(erase-buffer)
 	(buffer-manage-mode)
 	(buffer-manager-list-entries manager-instance)
-	(buffer-manage-mode-first-shell)
+	(buffer-manage-mode-first-buffer)
 	(set-window-point (get-buffer-window (current-buffer)) (point))
 	(set (make-local-variable 'buffer-manager-instance) manager-instance)
 	(set-buffer-modified-p nil)
