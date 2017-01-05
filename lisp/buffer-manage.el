@@ -7,7 +7,7 @@
 ;; Maintainer: Paul Landes
 ;; Keywords: interactive buffer management
 ;; URL: https://github.com/plandes/buffer-manage
-;; Package-Requires: ((emacs "24") (noflet "0.0.15") (choice-program "0.1"))
+;; Package-Requires: ((emacs "24") (choice-program "0.1"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 ;; process that requires multiple buffers.
 
 ;; The library includes support for:
-;; * A major mode and buffer for listing, switching, and organizing multiple emacs
+;; * A major mode and buffer for listing, switching, and organizing multiple Emacs
 ;;   buffers.
 ;; * Fast switching with customized key bindings through the customize framework.
 ;; * Switch between managers providing the same key bindings for buffer entries
@@ -47,7 +47,6 @@
 (require 'cl-lib)
 (require 'eieio)
 (require 'derived)
-(require 'noflet)
 (require 'choice-program-complete)
 
 (defgroup buffer-manage nil
@@ -404,10 +403,10 @@ otherwise, create a use a auto generated name."
 (defmethod buffer-manager-display-given-entries ((this buffer-manager)
 						 entries &optional
 						 other-buffers sort-form)
-  (noflet ((include-fn
-	    (entry)
-	    (memq entry entries)))
-    (buffer-manager-display-entries this 'include-fn
+  (cl-flet ((include-fn
+	     (entry)
+	     (memq entry entries)))
+    (buffer-manager-display-entries this #'include-fn
 				    nil other-buffers sort-form)))
 
 (defmethod buffer-manager-cleanup ((this buffer-manager))
@@ -556,14 +555,14 @@ Return `nil' if this isn't an entry buffer that belongs to this
 The default uses:
   last-visit: go to the last visited buffer entry
 	next: go to the next highest priority buffer entry"
-  (noflet ((current-fn
-	    (entry)
-	    (eq (buffer-manager-current-instance this) entry)))
+  (cl-flet* ((current-fn
+	     (entry)
+	     (eq (buffer-manager-current-instance this) entry)))
     (with-slots (last-switched-to include-frame-wins) this
       (let ((entries (buffer-manager-entries this))
 	    ;; get all entries displayed in windows on this frame except the
 	    ;; current entry we're in
-	    (win-entries (buffer-manager-window-entries this 'current-fn))
+	    (win-entries (buffer-manager-window-entries this #'current-fn))
 	    ;; the current entry we're in (if there is one)
 	    (cur-entry (buffer-manager-current-instance this))
 	    (method (oref this :cycle-method)))
@@ -778,33 +777,33 @@ shell.  The default is `buffer-entry-name'."
 
 (defmethod buffer-manager-list-entries ((this buffer-manager))
   "Return a multi-listing of the buffer entries contained in this manager."
-  (noflet ((get-entries
-	    ()
-	    (sort (buffer-manager-entries this)
-		  #'(lambda (a b)
-		      (string< (buffer-entry-name a)
-			       (buffer-entry-name b)))))
-	   (get-max
-	    (getter-fn)
-	    (let ((entries (get-entries)))
-	      (when entries
-		(apply #'max
-		       (mapcar #'(lambda (entry)
-				   (length (funcall getter-fn entry)))
-			       (get-entries))))))
-	   (entry-wd
-	    (entry)
-	    (with-current-buffer (buffer-entry-buffer entry)
-	      default-directory))
-	   (get-wd
-	    (entry col-space name-len)
-	    (let* ((name (entry-wd entry))
-		   (len (length name))
-		   (width 79)
-		   (max-len (- (- width col-space) name-len 0)))
-	      (if (> len max-len)
-		  (concat (substring name 0 (- max-len 3)) "...")
-		name))))
+  (cl-flet* ((get-entries
+	      ()
+	      (sort (buffer-manager-entries this)
+		    #'(lambda (a b)
+			(string< (buffer-entry-name a)
+				 (buffer-entry-name b)))))
+	     (get-max
+	      (getter-fn)
+	      (let ((entries (get-entries)))
+		(when entries
+		  (apply #'max
+			 (mapcar #'(lambda (entry)
+				     (length (funcall getter-fn entry)))
+				 (get-entries))))))
+	     (entry-wd
+	      (entry)
+	      (with-current-buffer (buffer-entry-buffer entry)
+		default-directory))
+	     (get-wd
+	      (entry col-space name-len)
+	      (let* ((name (entry-wd entry))
+		     (len (length name))
+		     (width 79)
+		     (max-len (- (- width col-space) name-len 0)))
+		(if (> len max-len)
+		    (concat (substring name 0 (- max-len 3)) "...")
+		  name))))
     (when (not (boundp 'buffer-entry-status))
       (set (make-local-variable 'buffer-entry-status)
 	   (make-hash-table :test 'equal)))
@@ -1235,7 +1234,6 @@ value of FUNC."
     (cl-flet ((collect
 	       (inst entry)
 	       (setq entries (append entries (list entry)))))
-      ;;(buffer-manage-mode-op-selected 'to-show 'alive 'collect)
       (buffer-manage-mode-apply-selected 'to-show 'to-show 'collect)
       (buffer-manager-display-given-entries this entries))))
 
