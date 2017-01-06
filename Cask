@@ -2,11 +2,9 @@
 (source gnu)
 (source melpa)
 
-(depends-on "noflet")
+(package-file "buffer-manage.el")
 
-(package-file "lisp/buffer-manage.el")
-
-(files "lisp/*.el" "doc/*.texi" (:exclude ".dir-locals.el"))
+(files "*.el" "doc/*.texi" (:exclude ".dir-locals.el"))
 
 (development
  (depends-on "dash")
