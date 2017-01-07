@@ -1307,7 +1307,13 @@ MANAGER-INSTANCE is the `buffer-manager' singleton instance.
 BUFFER-NAME is the name of the buffer holding the entries for the mode."
   (let ((buf (get-buffer buffer-name)))
     (if buf
-	(with-current-buffer buf
+	(save-excursion
+	  (eval-and-compile
+	    (let ((msg (concat "we need `save-excursion' since interactively "
+			       "called `buffer-manage-mode-refresh' sets "
+			       "the window point")))
+	     (display-warning 'buffer-manage msg :debug)))
+	  (set-buffer buf)
 	  (buffer-manage-mode-refresh)
 	  (switch-to-buffer (current-buffer)))
       (with-current-buffer
