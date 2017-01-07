@@ -59,6 +59,8 @@ you can then manage those buffers by with `C-tab` or `M-x <package name>-list`.
 This mode provides a list of live buffers and (optionally) their working
 directory.
 
+### Key Bindings
+
 The buffer allows for mouse editing and also the following keys:
 
 |Key               |Function                            |Description
@@ -82,12 +84,13 @@ The buffer allows for mouse editing and also the following keys:
 |`<return>`        |buffer-manage-mode-activate-buffer  |Activates the buffer entry with name NAME.                |
 
 
-## Cycling Modes
+## Fast Switching
 
 To easily and quickly switch between modes, you can use `C-x C-h` or `M-x
-<package name>-switch`.  Using this command when there are no shells creates
-one.  It also has special behavior when using the universal command (`C-u`) on
-invocation.  Currently, there are two ways to cycle through buffers:
+<package name>-switch`.  Using this command when there are no buffer entries
+creates one.  Switching by buffer entry name completion is invoked by adding
+the universal command (`C-u C-x C-h`) on invocation.  Currently, there are two
+ways to cycle through buffers:
 * *last-visit*: go to the last visited buffer entry
 * *next*: go to the next highest priority buffer entry
 
