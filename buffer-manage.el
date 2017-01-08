@@ -1305,19 +1305,18 @@ Special commands:
   "Create a listing of buffers used for viewing, renameing, deleting, adding.
 MANAGER-INSTANCE is the `buffer-manager' singleton instance.
 BUFFER-NAME is the name of the buffer holding the entries for the mode."
-  (let ((buf (get-buffer buffer-name)))
-    (if buf
-	(save-excursion
-	  (eval-and-compile
-	    (let ((msg (concat "we need `save-excursion' since interactively "
-			       "called `buffer-manage-mode-refresh' sets "
-			       "the window point")))
-	     (display-warning 'buffer-manage msg :debug)))
-	  (set-buffer buf)
+  (let* ((buf (get-buffer buffer-name))
+	 (newp (not buf))
+	 (buf (or buf (get-buffer-create buffer-name))))
+    (save-excursion
+      (eval-and-compile
+      	(let ((msg (concat "we need `save-excursion' since interactively "
+      			   "called `buffer-manage-mode-refresh' sets "
+      			   "the window point")))
+      	  (display-warning 'buffer-manage msg :debug)))
+      (set-buffer buf)
+      (if (not newp)
 	  (buffer-manage-mode-refresh)
-	  (switch-to-buffer (current-buffer)))
-      (with-current-buffer
-	  (get-buffer-create buffer-name)
 	(setq buffer-read-only nil)
 	(erase-buffer)
 	(buffer-manage-mode)
@@ -1328,8 +1327,8 @@ BUFFER-NAME is the name of the buffer holding the entries for the mode."
 	(set-buffer-modified-p nil)
 	(setq buffer-read-only t)
 	(easy-menu-define buffer-manage-mode-menu buffer-manage-mode-map
-	  "Menu for Buffer Manage." buffer-manage-mode-menu-definition)
-	(switch-to-buffer (current-buffer))))))
+	  "Menu for Buffer Manage." buffer-manage-mode-menu-definition)))
+    (switch-to-buffer buf)))
 
 (provide 'buffer-manage)
 
