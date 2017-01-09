@@ -20,3 +20,7 @@
 (ert-deftest test-load ()
   "Test successful evaluation of buffer-manage"
   (should (not (null fake-manager-singleton))))
+
+(provide 'buffer-manage-test)
+
+;;; buffer-manage-test ends here
