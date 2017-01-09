@@ -61,7 +61,7 @@ directory.
 
 ### Key Bindings
 
-The buffer allows for mouse editing and also the following keys:
+The [entries mode buffer](#entries-mode) allows for mouse editing and also the following keys:
 
 |Key               |Function                            |Description
 |-----------------:|------------------------------------|-----------------------------------------------------------
