@@ -104,19 +104,19 @@ respect generated functions \(see `buffer-manager-interactive-functions').")
   :abstract true
   :documentation "Baes class for all buffer objects \(entries, managers etc).")
 
-(defmethod object-print-fields ((this buffer-object-base)) nil)
+(cl-defmethod object-print-fields ((this buffer-object-base)) nil)
 
-(defmethod object-print ((this buffer-object-base) &optional strings)
+(cl-defmethod object-print ((this buffer-object-base) &optional strings)
   "Return a string as a representation of the in memory instance of THIS."
   (cl-flet ((format-obj
 	     (slot)
 	     (let ((obj (eieio-oref this slot)))
 	       (format "%S %s"
 		       slot
-		       (cond ((object-p obj) (object-print obj))
+		       (cond ((eieio-object-p obj) (object-print obj))
 			     ((stringp obj) (format "'%s'" obj))
 			     (obj))))))
-    (apply 'call-next-method this
+    (apply #'cl-call-next-method this
 	   (cons (concat " " (mapconcat 'format-obj
 					(object-print-fields this)
 					" "))
@@ -159,8 +159,8 @@ process dies."
   :abstract true
   :documentation "Abstract class for all buffer entry like objects.")
 
-(defmethod initialize-instance ((this buffer-entry) &rest rest)
-  (apply 'call-next-method this rest)
+(cl-defmethod initialize-instance ((this buffer-entry) &rest rest)
+  (apply #'cl-call-next-method this rest)
   (let ((win-cfg (current-window-configuration))
 	new-buf)
     (with-slots (name sentinel manager) this
@@ -182,7 +182,7 @@ process dies."
 			     msg ,this ,manager))))))
 	(set-window-configuration win-cfg)))))
 
-(defmethod destructor ((this buffer-entry))
+(cl-defmethod destructor ((this buffer-entry))
   "Dispose a `buffer-entry' instance by killing it's process.
 Don't use this instance after this method is called.  Instead, don't reference
 it and let the garbage collector get it."
@@ -191,31 +191,32 @@ it and let the garbage collector get it."
 	(delete-frame (window-frame (selected-window))))
     (kill-buffer (buffer-entry-buffer this))))
 
-(defmethod object-print-fields ((this buffer-entry))
-  (append (call-next-method) '(:buffer :kill-frame-p)))
+(cl-defmethod object-print-fields ((this buffer-entry))
+  (append (cl-call-next-method) '(:buffer :kill-frame-p)))
 
-(defmethod buffer-entry-format-buffer-name ((this buffer-entry) name)
+(cl-defmethod buffer-entry-format-buffer-name ((this buffer-entry) name)
   "Create a buffer name from the entry instance's NAME."
   (format "*%s*" name))
-    ;; we don't look for ending -1, -2...-N anymore--I think this was a
-    ;; carry over from when duplicate buffer names weren't used and this
-    ;; had to create them, `generate-new-buffer' etc adds the -1 for you
-    ;; and no parsing needed--PL 11/20/2009
+;; we don't look for ending -1, -2...-N anymore--I think this was a
+;; carry over from when duplicate buffer names weren't used and this
+;; had to create them, `generate-new-buffer' etc adds the -1 for you
+;; and no parsing needed--PL 11/20/2009
 
-(defmethod buffer-entry-name ((this buffer-entry))
+(cl-defmethod buffer-entry-name ((this buffer-entry))
   "Return the name of the entry."
   (buffer-entry-live-p this t)
-  (with-temp-buffer
-    (insert (buffer-name (oref this :buffer)))
-    (goto-char (point-min))
-    (if (re-search-forward "^\\*\\(.*\\)\\*\\(?:<\\([0-9]+\\)>\\)?$" nil t)
-	(let ((first (match-string 1))
-	      (card (match-string 2)))
-	  (if card
-	      (format "%s-%s" first card)
-	    first)))))
+  (with-slots (buffer) this
+    (with-temp-buffer
+      (insert (buffer-name buffer))
+      (goto-char (point-min))
+      (if (re-search-forward "^\\*\\(.*\\)\\*\\(?:<\\([0-9]+\\)>\\)?$" nil t)
+	  (let ((first (match-string 1))
+		(card (match-string 2)))
+	    (if card
+		(format "%s-%s" first card)
+	      first))))))
 
-(defmethod buffer-entry-rename ((this buffer-entry) name)
+(cl-defmethod buffer-entry-rename ((this buffer-entry) name)
   "Rename the buffer entry to NAME and return the new entry.
 Note that NAME is not buffer name syntax, it is the name of the
 entry."
@@ -225,13 +226,13 @@ entry."
       (rename-buffer buf-name t)))
   this)
 
-(defmethod buffer-entry-create-buffer ((this buffer-entry))
+(cl-defmethod buffer-entry-create-buffer ((this buffer-entry))
   "Create the buffer for this entry.
 This is a factory method that is called once by the constructor of the object."
   (error "Must override `buffer-entry-create-buffer' for class `%S'"
 	 (eieio-object-class this)))
 
-(defmethod buffer-entry-live-p ((this buffer-entry) &optional error-p)
+(cl-defmethod buffer-entry-live-p ((this buffer-entry) &optional error-p)
   "Return non-nil if this entry is still active, otherwise it is useless and
 the garbage collector should clean this instance up.
 
@@ -243,7 +244,7 @@ time."
 	(error "Buffer isn't valid"))
     live-p))
 
-(defmethod buffer-entry-end-of-window ((this buffer-entry))
+(cl-defmethod buffer-entry-end-of-window ((this buffer-entry))
   (let ((buf (buffer-entry-buffer this)))
     (with-current-buffer buf
       (goto-char (point-max))
@@ -256,7 +257,7 @@ time."
   ((start-dir :initarg :start-dir
 	      :initform "~/"
 	      ;; customized vars need public access
-	      ;:protection :protected
+					;:protection :protected
 	      :reader buffer-manager-start-dir
 	      :type (or null string)
 	      :label "Start directory of the entry process"
@@ -316,76 +317,79 @@ Keeps track of the last entry for last-visit cycle method."
   :abstract true
   :documentation "Manages buffer entries.")
 
-(defmethod destructor ((this buffer-manager))
+(cl-defmethod destructor ((this buffer-manager))
   "Dispose by disping all buffer entries.
 Don't use this instance after this method is called.  Instead, don't reference
 it and let the garbage collector get it."
-  (dolist (entry (oref this :entries))
-    (destructor entry))
-  (let (new-entries)
-    (dolist (entry (oref this :entries))
-      (if (buffer-entry-live-p entry)
-	  (setq new-entries (append new-entries (cons entry nil)))))
-    (oset this :entries new-entries)))
+  (with-slots (entries) this
+    (dolist (entry entries)
+      (destructor entry))
+    (let (new-entries)
+      (dolist (entry entries)
+	(if (buffer-entry-live-p entry)
+	    (setq new-entries (append new-entries (cons entry nil)))))
+      (setq entries new-entries))))
 
-(defmethod buffer-manager-create-entry ((this buffer-manager) &rest args)
+(cl-defmethod buffer-manager-create-entry ((this buffer-manager) &rest args)
   "Factory method to create a buffer entry \(factory method)."
   (error "No implementation of `buffer-manager-create-entry' for class `%S'"
 	 (eieio-object-class this)))
 
-(defmethod buffer-manager-conical-name ((this buffer-manager))
+(cl-defmethod buffer-manager-conical-name ((this buffer-manager))
   "The conical name of a `buffer-entry' instance \(i.e. `shell')."
   (error "Class `%S' has unsupported `buffer-manager-conical-name' method"
 	 (eieio-object-class this)))
 
-(defmethod buffer-manager-name ((this buffer-manager))
+(cl-defmethod buffer-manager-name ((this buffer-manager))
   "The name of the manager \(i.e. `shell').
 This is a descriptor used for interactive prompts etc.  It should be all lower
 case."
   (error "Class `%S' has unsupported `buffer-manager-name' method"
 	 (eieio-object-class this)))
 
-(defmethod buffer-manager-new-entry ((this buffer-manager) &optional
-				     name start-dir new-frame-p switchp)
+(cl-defmethod buffer-manager-new-entry ((this buffer-manager) &optional
+					name start-dir new-frame-p switchp)
   "Create a new entry instance and return its name.
 If NAME is non-nil, use it as the name of the buffer entry,
 otherwise, create a use a auto generated name."
-  (let* ((default-directory (file-name-as-directory
-			     (or start-dir
-				 (buffer-manager-start-dir this)
-				 default-directory)))
-	 (new-entry (buffer-manager-create-entry
-		     this
-		     :sentinel 'buffer-manager-process-sentinel
-		     :manager this
-		     :kill-frame-p new-frame-p
-		     :name name)))
-    (oset this :entries (cons new-entry (oref this :entries)))
-    (setq name (buffer-entry-name new-entry))
-    (with-current-buffer (buffer-entry-buffer new-entry)
-      (set (make-local-variable 'buffer-manager-instance) this))
-    (message "Created %s `%s'" (buffer-manager-name this) name)
-    (if switchp (buffer-manager-switch this new-entry new-frame-p))
-    new-entry))
+  (with-slots (entries) this
+    (let* ((default-directory (file-name-as-directory
+			       (or start-dir
+				   (buffer-manager-start-dir this)
+				   default-directory)))
+	   (new-entry (buffer-manager-create-entry
+		       this
+		       :sentinel 'buffer-manager-process-sentinel
+		       :manager this
+		       :kill-frame-p new-frame-p
+		       :name name)))
+      (setq entries (cons new-entry entries))
+      (setq name (buffer-entry-name new-entry))
+      (with-current-buffer (buffer-entry-buffer new-entry)
+	(set (make-local-variable 'buffer-manager-instance) this))
+      (message "Created %s `%s'" (buffer-manager-name this) name)
+      (if switchp (buffer-manager-switch this new-entry new-frame-p))
+      new-entry)))
 
-(defmethod buffer-manager-remove-entry ((this buffer-manager) entry)
+(cl-defmethod buffer-manager-remove-entry ((this buffer-manager) entry)
   "Remove/kill ENTRY from this manager."
-  (when (memq entry (oref this :entries))
-    (let ((name (buffer-entry-name entry)))
-      (oset this :entries (remove entry (oref this :entries)))
-      (destructor entry)
-      entry)))
+  (with-slots (entries) this
+    (when (memq entry entries)
+      (let ((name (buffer-entry-name entry)))
+	(setq entries (remove entry entries))
+	(destructor entry)
+	entry))))
 
-(defmethod buffer-manager-remove-entries ((this buffer-manager)
-					  &optional include-fn exclude-fn)
+(cl-defmethod buffer-manager-remove-entries ((this buffer-manager)
+					     &optional include-fn exclude-fn)
   "Remove/all buffer entries that satisfy criteria INCLUDE-FN EXCLUDE-FN."
   (let ((entries (buffer-manager-entries this include-fn exclude-fn)))
     (dolist (entry entries)
       (buffer-manager-remove-entry this entry))))
 
-(defmethod buffer-manager-display-entries ((this buffer-manager)
-					   &optional include-fn exclude-fn
-					   other-buffers sort-form)
+(cl-defmethod buffer-manager-display-entries ((this buffer-manager)
+					      &optional include-fn exclude-fn
+					      other-buffers sort-form)
   (let* ((entries (buffer-manager-entries this include-fn exclude-fn sort-form))
 	 (bufs (append other-buffers
 		       (mapcar 'buffer-entry-buffer entries))))
@@ -400,16 +404,16 @@ otherwise, create a use a auto generated name."
 	  (switch-to-buffer buf))
 	(other-window 1)))))
 
-(defmethod buffer-manager-display-given-entries ((this buffer-manager)
-						 entries &optional
-						 other-buffers sort-form)
+(cl-defmethod buffer-manager-display-given-entries ((this buffer-manager)
+						    entries &optional
+						    other-buffers sort-form)
   (cl-flet ((include-fn
 	     (entry)
 	     (memq entry entries)))
     (buffer-manager-display-entries this #'include-fn
 				    nil other-buffers sort-form)))
 
-(defmethod buffer-manager-cleanup ((this buffer-manager))
+(cl-defmethod buffer-manager-cleanup ((this buffer-manager))
   "Remove all dead buffer entries."
   (condition-case err
       (with-slots (entries) this
@@ -444,8 +448,8 @@ MANAGER the `buffer-manager' singleton instance."
       (buffer-manager-cleanup this))))
 (add-hook 'kill-buffer-hook 'buffer-manager-kill-buffer-callback)
 
-(defmethod buffer-manager-entries ((this buffer-manager)
-				   &optional include-fn exclude-fn sort-form)
+(cl-defmethod buffer-manager-entries ((this buffer-manager)
+				      &optional include-fn exclude-fn sort-form)
   "Return entries that match INCLUDE-FN and don't match EXCLUDE-FN.
 Entries returned are only entries contained in this instance of the
 `buffer-manager'.
@@ -455,42 +459,44 @@ sorting is only done on the returned set of entries and doesn't change any
 of the object's internal state.  Sorting is done based on SORT-FORM's value:
  - symbol 'lexical: sort lexically based on the buffer entry's name
  - function: sort using SORT-FORM as a predicate \(see `sort')."
-  (setq include-fn (or include-fn #'(lambda (entry) t))
-	exclude-fn (or exclude-fn #'(lambda (entry) nil)))
-  (let ((entries
-	 (remove nil (mapcar #'(lambda (entry)
-				 (if (and (funcall include-fn entry)
-					  (not (funcall exclude-fn entry)))
-				     entry))
-			     (oref this :entries)))))
-    (when sort-form
-      (cl-flet ((lexical-fn
-		 (a b)
-		 (string< (buffer-entry-name a) (buffer-entry-name b))))
-	(let ((sort-fn (cond ((eq sort-form 'lexical) 'lexical-fn)
-			     ((functionp sort-form) sort-form)
-			     (t (error "Illegal sort form: %S" sort-form)))))
-	  (setq entries (sort entries sort-fn)))))
-    entries))
+  (with-slots (entries) this
+    (setq include-fn (or include-fn #'(lambda (entry) t))
+	  exclude-fn (or exclude-fn #'(lambda (entry) nil)))
+    (let ((entries
+	   (remove nil (mapcar #'(lambda (entry)
+				   (if (and (funcall include-fn entry)
+					    (not (funcall exclude-fn entry)))
+				       entry))
+			       entries))))
+      (when sort-form
+	(cl-flet ((lexical-fn
+		   (a b)
+		   (string< (buffer-entry-name a) (buffer-entry-name b))))
+	  (let ((sort-fn (cond ((eq sort-form 'lexical) 'lexical-fn)
+			       ((functionp sort-form) sort-form)
+			       (t (error "Illegal sort form: %S" sort-form)))))
+	    (setq entries (sort entries sort-fn)))))
+      entries)))
 
-(defmethod buffer-manager-first-entry ((this buffer-manager)
-				       &optional include-fn exclude-fn assertp)
+(cl-defmethod buffer-manager-first-entry ((this buffer-manager)
+					  &optional include-fn exclude-fn assertp)
   "Return the first entry matching INCLUDE-FN that doesn't match EXCUDE-FN.
 Entries returned are only entries contained in this instance of the
 `buffer-manager'.
 If ASSERTP is non-nil, raise an error if there is no such entry."
-  (setq include-fn (or include-fn #'(lambda (entry) t))
-	exclude-fn (or exclude-fn #'(lambda (entry) nil)))
-  (let ((entry (dolist (entry (oref this :entries))
-		 (if (and (funcall include-fn entry)
-			  (not (funcall exclude-fn entry)))
-		     (cl-return entry)))))
-    (if (and assertp (null entry))
-	(error "No first entry"))
-    entry))
+  (with-slots (entries) this
+    (setq include-fn (or include-fn #'(lambda (entry) t))
+	  exclude-fn (or exclude-fn #'(lambda (entry) nil)))
+    (let ((entry (dolist (entry entries)
+		   (if (and (funcall include-fn entry)
+			    (not (funcall exclude-fn entry)))
+		       (cl-return entry)))))
+      (if (and assertp (null entry))
+	  (error "No first entry"))
+      entry)))
 
-(defmethod buffer-manager-window-entries ((this buffer-manager)
-					  &optional exclude-fn)
+(cl-defmethod buffer-manager-window-entries ((this buffer-manager)
+					     &optional exclude-fn)
   "Return `buffer-entry' instances contained in windows for this frame."
   (buffer-manager-entries this
 			  #'(lambda (entry)
@@ -501,21 +507,22 @@ If ASSERTP is non-nil, raise an error if there is no such entry."
 				      (cl-return t)))))
 			  exclude-fn))
 
-(defmethod buffer-manager-current-instance ((this buffer-manager)
-					    &optional assertp)
+(cl-defmethod buffer-manager-current-instance ((this buffer-manager)
+					       &optional assertp)
   "Get the current buffer entry instance in the current buffer.
 Return `nil' if this isn't an entry buffer that belongs to this
 `buffer-manager' instance."
-  (if (and (boundp 'buffer-entry-instance)
-	   (member buffer-entry-instance (oref this :entries)))
-      buffer-entry-instance
-    (if assertp (error "Missing buffer entry or wrong buffer"))))
+  (with-slots (entries) this
+    (if (and (boundp 'buffer-entry-instance)
+	     (member buffer-entry-instance entries))
+	buffer-entry-instance
+      (if assertp (error "Missing buffer entry or wrong buffer")))))
 
-(defmethod buffer-manager-cycle-methods ((this buffer-manager))
+(cl-defmethod buffer-manager-cycle-methods ((this buffer-manager))
   "All valid cycle methods (see `buffer-manager-entry-cycle')."
   '(last-visit next))
 
-(defmethod buffer-manager-toggle-cycle-method ((this buffer-manager))
+(cl-defmethod buffer-manager-toggle-cycle-method ((this buffer-manager))
   (let* ((methods (buffer-manager-cycle-methods this))
 	 (method (buffer-manager-cycle-method this)))
     (setq method (or (cadr (member method methods)) (car methods)))
@@ -535,37 +542,37 @@ Return `nil' if this isn't an entry buffer that belongs to this
 	  (buffer-manager-enter-buffer buffer-manager-instance
 				       buffer-entry-instance)))))
 
-(defmethod buffer-manager-enter-buffer ((this buffer-manager) entry)
+(cl-defmethod buffer-manager-enter-buffer ((this buffer-manager) entry)
   (with-slots (last-switched-to) this
     (setq last-switched-to entry)
     (buffer-manager-cycle-entries this entry)))
 
-(defmethod buffer-manager-cycle-entries ((this buffer-manager) entry)
+(cl-defmethod buffer-manager-cycle-entries ((this buffer-manager) entry)
   "Rearrange the entry order to place ENTRY in place after cycling."
-  (with-slots (entries) this
+  (with-slots (entries cycle-method) this
     (let ((first (car entries)))
       (setq entries (cons entry (remove entry entries)))
-      (if (and (eq 'next (oref this :cycle-method))
+      (if (and (eq 'next cycle-method)
 	       (> (length entries) 1)
 	       (not (eq first entry)))
 	  (setq entries (append (remove first entries) (list first)))))))
 
-(defmethod buffer-manager-entry-cycle ((this buffer-manager))
+(cl-defmethod buffer-manager-entry-cycle ((this buffer-manager))
   "Cycle based on slot `cycle-method'.
 The default uses:
   last-visit: go to the last visited buffer entry
 	next: go to the next highest priority buffer entry"
   (cl-flet* ((current-fn
-	     (entry)
-	     (eq (buffer-manager-current-instance this) entry)))
-    (with-slots (last-switched-to include-frame-wins) this
+	      (entry)
+	      (eq (buffer-manager-current-instance this) entry)))
+    (with-slots (last-switched-to include-frame-wins cycle-method) this
       (let ((entries (buffer-manager-entries this))
 	    ;; get all entries displayed in windows on this frame except the
 	    ;; current entry we're in
 	    (win-entries (buffer-manager-window-entries this #'current-fn))
 	    ;; the current entry we're in (if there is one)
 	    (cur-entry (buffer-manager-current-instance this))
-	    (method (oref this :cycle-method)))
+	    (method cycle-method))
 	(if (not (member method (buffer-manager-cycle-methods this)))
 	    (error "Invalid cycle method: %S" method))
 	(or
@@ -614,8 +621,8 @@ The default uses:
 				method)))
 	    (and (not include-frame-wins) (car entries)))))))))
 
-(defmethod buffer-entry-insert ((this buffer-entry) command
-				&optional send-command-p)
+(cl-defmethod buffer-entry-insert ((this buffer-entry) command
+				   &optional send-command-p)
   "Add COMMAND to the buffer prompt.
 If the buffer doesn't have the point at the prompt, then create an error.
 
@@ -631,15 +638,16 @@ user hit ENTER."
 	(goto-char (point-max))
 	(set-window-point (get-buffer-window (current-buffer)) (point-max))))))
 
-(defmethod buffer-manager-entry-exists-p ((this buffer-manager) entry)
+(cl-defmethod buffer-manager-entry-exists-p ((this buffer-manager) entry)
   "If ENTRY is an instance of a class or subclass of `buffer-entry' return it."
-  (and (object-p entry)
-       (object-of-class-p entry 'buffer-entry)
-       (member entry (oref this :entries))
-       entry))
+  (with-slots (entries) this
+    (and (eieio-object-p entry)
+	 (object-of-class-p entry 'buffer-entry)
+	 (member entry entries)
+	 entry)))
 
-(defmethod buffer-manager-entry ((this buffer-manager)
-				 criteria &optional assertp)
+(cl-defmethod buffer-manager-entry ((this buffer-manager)
+				    criteria &optional assertp)
   "This returns an entry based on CRITERIA.
 CRITERIA is:
   a string: the buffer name to switch to the buffer entry with that name
@@ -669,8 +677,8 @@ CRITERIA is:
 	(error "No entry exists that satisfies criteria `%S'" criteria))
     entry))
 
-(defmethod buffer-manager-switch ((this buffer-manager) criteria
-				  &optional new-frame-p window-cfg)
+(cl-defmethod buffer-manager-switch ((this buffer-manager) criteria
+				     &optional new-frame-p window-cfg)
   "Switch to a buffer entry.
 If the buffer CRITERIA is the name of the buffer to switch to, go to that
 buffer, otherwise, create a new one with that name and switch to it.
@@ -699,8 +707,8 @@ currently just the symbol `split'."
     (buffer-manager-cycle-entries this entry)
     entry))
 
-(defmethod buffer-manager-read-new-name ((this buffer-manager)
-					 &optional prompt auto-generate-p)
+(cl-defmethod buffer-manager-read-new-name ((this buffer-manager)
+					    &optional prompt auto-generate-p)
   "Read a buffer name from user input."
   (let ((def (buffer-manager-conical-name this))
 	name)
@@ -712,9 +720,9 @@ currently just the symbol `split'."
       (if (= 0 (length name)) (setq name nil))
       name)))
 
-(defmethod buffer-manager-read-name ((this buffer-manager)
-				     &optional prompt require-match
-				     default name-fn)
+(cl-defmethod buffer-manager-read-name ((this buffer-manager)
+					&optional prompt require-match
+					default name-fn)
   "Read a buffer entry name from the user.
 
 PRMOPT is given to the user, or defaults to the
@@ -775,7 +783,7 @@ buffer.  The default is `buffer-entry-name'."
     (to-show . "S"))
   "Enumeration of status for buffers in `buffer-manager-list-entries'.")
 
-(defmethod buffer-manager-list-entries ((this buffer-manager))
+(cl-defmethod buffer-manager-list-entries ((this buffer-manager))
   "Return a multi-listing of the buffer entries contained in this manager."
   (cl-flet* ((get-entries
 	      ()
@@ -840,11 +848,11 @@ buffer.  The default is `buffer-entry-name'."
 					 (get-wd entry col-space name-len))))))
 	  (if (cdr lst) (insert "\n")))))))
 
-(defmethod buffer-manager-interactive-functions ((this buffer-manager)
-						 singleton-variable-sym)
+(cl-defmethod buffer-manager-interactive-functions ((this buffer-manager)
+						    singleton-variable-sym)
   (let ((cname (buffer-manager-conical-name this)))
     `(("new" (defun ,(intern (format "%s-new" cname))
-	       (&optional name start-dir new-frame-p)
+		 (&optional name start-dir new-frame-p)
 	       ,(format "Create a new %s entry.
 When invoked with \\[universal-argument] a new NAME for the %s is prompted
 to the user.  If the name of the %s doesn't yet exist, it will be created.
@@ -944,7 +952,7 @@ In this buffer, you can rename and go to %ss"
 		      (let* ((this ,singleton-variable-sym))
 			(buffer-manager-remove-entries this)))))))
 
-(defmethod buffer-manager-bind-interactive-functions ((this buffer-manager))
+(cl-defmethod buffer-manager-bind-interactive-functions ((this buffer-manager))
   (let ((funcs (buffer-manager-interactive-functions this 'none))
 	(bindings (car (delq nil (mapcar #'(lambda (entry)
 					     (if (null (car entry))
@@ -965,10 +973,10 @@ In this buffer, you can rename and go to %ss"
 		 (cl-third binding)
 		 (or (cl-second binding) 'global))))))
 
-(defmethod buffer-manager-key-bindings ((this buffer-manager)) nil)
+(cl-defmethod buffer-manager-key-bindings ((this buffer-manager)) nil)
 
-(defmethod buffer-manager-create-interactive-functions ((this buffer-manager)
-							singleton-variable-sym)
+(cl-defmethod buffer-manager-create-interactive-functions ((this buffer-manager)
+							   singleton-variable-sym)
   (add-to-list 'buffer-manage-remap-instances singleton-variable-sym)
   (let ((defs (mapcar 'cl-second
 		      (buffer-manager-interactive-functions
@@ -1071,13 +1079,13 @@ binding (see `buffer-manager-read-bind-choices')."
   "Face name to use for working directories.")
 
 (defvar buffer-manage-font-lock-keywords
- `((,(format "^.\\{%d\\}\\(.*?\\)[ \t]+.*$" (1+ buffer-manager-list-col-space))
-    1 buffer-manage-font-lock-name-face t)
-   (,(format "^.\\{%d\\}.*?[ \t]+\\(.*\\)$" (1+ buffer-manager-list-col-space))
-    1 buffer-manage-font-lock-wd-face t)
-   ,(list (format "^\\(%s.*\\)$" (cl-second buffer-manager-list-header-fields))
-	  1 buffer-manage-font-lock-headers-face t)
-   ("^\\([- \t]+\\)$" 1 buffer-manage-font-lock-headers-face t))
+  `((,(format "^.\\{%d\\}\\(.*?\\)[ \t]+.*$" (1+ buffer-manager-list-col-space))
+     1 buffer-manage-font-lock-name-face t)
+    (,(format "^.\\{%d\\}.*?[ \t]+\\(.*\\)$" (1+ buffer-manager-list-col-space))
+     1 buffer-manage-font-lock-wd-face t)
+    ,(list (format "^\\(%s.*\\)$" (cl-second buffer-manager-list-header-fields))
+	   1 buffer-manage-font-lock-headers-face t)
+    ("^\\([- \t]+\\)$" 1 buffer-manage-font-lock-headers-face t))
   "Additional expressions to highlight in buffer manage mode.")
 (if (featurep 'xemacs)
     (put 'buffer-manage-mode 'font-lock-defaults
@@ -1310,10 +1318,10 @@ BUFFER-NAME is the name of the buffer holding the entries for the mode."
 	 (buf (or buf (get-buffer-create buffer-name))))
     (save-excursion
       (eval-and-compile
-      	(let ((msg (concat "we need `save-excursion' since interactively "
-      			   "called `buffer-manage-mode-refresh' sets "
-      			   "the window point")))
-      	  (display-warning 'buffer-manage msg :debug)))
+	(let ((msg (concat "we need `save-excursion' since interactively "
+			   "called `buffer-manage-mode-refresh' sets "
+			   "the window point")))
+	  (display-warning 'buffer-manage msg :debug)))
       (set-buffer buf)
       (if (not newp)
 	  (buffer-manage-mode-refresh)
