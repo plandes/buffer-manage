@@ -108,16 +108,16 @@ respect generated functions \(see `buffer-manager-interactive-functions').")
 
 (cl-defmethod object-print ((this buffer-object-base) &optional strings)
   "Return a string as a representation of the in memory instance of THIS."
-  (cl-flet ((format-obj
-	     (slot)
-	     (let ((obj (eieio-oref this slot)))
-	       (format "%S %s"
-		       slot
-		       (cond ((eieio-object-p obj) (object-print obj))
-			     ((stringp obj) (format "'%s'" obj))
-			     (obj))))))
+  (cl-flet* ((format-obj
+	      (slot)
+	      (let ((obj (eieio-oref this slot)))
+		(format "%S %s"
+			slot
+			(cond ((eieio-object-p obj) (object-print obj))
+			      ((stringp obj) (format "'%s'" obj))
+			      (obj))))))
     (apply #'cl-call-next-method this
-	   (cons (concat " " (mapconcat 'format-obj
+	   (cons (concat " " (mapconcat #'format-obj
 					(object-print-fields this)
 					" "))
 		 strings))))
@@ -187,6 +187,10 @@ process dies."
 Don't use this instance after this method is called.  Instead, don't reference
 it and let the garbage collector get it."
   (when (buffer-entry-live-p this)
+    (with-slots (buffer) this
+     (when (get-buffer-process buffer)
+       (buffer-entry-insert this "exit" t)
+       (sit-for 0.5)))
     (if (oref this kill-frame-p)
 	(delete-frame (window-frame (selected-window))))
     (kill-buffer (buffer-entry-buffer this))))
