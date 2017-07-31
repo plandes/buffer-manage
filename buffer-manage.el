@@ -423,8 +423,8 @@ otherwise, create a use a auto generated name."
       (with-slots (entries) this
 	(setq entries
 	      (remove nil
-		      (mapcar #'(lambda (entry)
-				  (if (buffer-entry-live-p entry) entry))
+		      (mapcar (lambda (entry)
+				(if (buffer-entry-live-p entry) entry))
 			      entries))))
     (error (with-current-buffer
 	       (get-buffer-create "*Manage Buffer Errors*")
@@ -464,13 +464,13 @@ of the object's internal state.  Sorting is done based on SORT-FORM's value:
  - symbol 'lexical: sort lexically based on the buffer entry's name
  - function: sort using SORT-FORM as a predicate \(see `sort')."
   (with-slots (entries) this
-    (setq include-fn (or include-fn #'(lambda (entry) t))
-	  exclude-fn (or exclude-fn #'(lambda (entry) nil)))
+    (setq include-fn (or include-fn (lambda (entry) t))
+	  exclude-fn (or exclude-fn (lambda (entry) nil)))
     (let ((entries
-	   (remove nil (mapcar #'(lambda (entry)
-				   (if (and (funcall include-fn entry)
-					    (not (funcall exclude-fn entry)))
-				       entry))
+	   (remove nil (mapcar (lambda (entry)
+				 (if (and (funcall include-fn entry)
+					  (not (funcall exclude-fn entry)))
+				     entry))
 			       entries))))
       (when sort-form
 	(cl-flet ((lexical-fn
@@ -489,8 +489,8 @@ Entries returned are only entries contained in this instance of the
 `buffer-manager'.
 If ASSERTP is non-nil, raise an error if there is no such entry."
   (with-slots (entries) this
-    (setq include-fn (or include-fn #'(lambda (entry) t))
-	  exclude-fn (or exclude-fn #'(lambda (entry) nil)))
+    (setq include-fn (or include-fn (lambda (entry) t))
+	  exclude-fn (or exclude-fn (lambda (entry) nil)))
     (let ((entry (dolist (entry entries)
 		   (if (and (funcall include-fn entry)
 			    (not (funcall exclude-fn entry)))
@@ -503,12 +503,12 @@ If ASSERTP is non-nil, raise an error if there is no such entry."
 					     &optional exclude-fn)
   "Return `buffer-entry' instances contained in windows for this frame."
   (buffer-manager-entries this
-			  #'(lambda (entry)
-			      (dolist (win (window-list))
-				(with-current-buffer (window-buffer win)
-				  (if (and (boundp 'buffer-entry-instance)
-					   (eq buffer-entry-instance entry))
-				      (cl-return t)))))
+			  (lambda (entry)
+			    (dolist (win (window-list))
+			      (with-current-buffer (window-buffer win)
+				(if (and (boundp 'buffer-entry-instance)
+					 (eq buffer-entry-instance entry))
+				    (cl-return t)))))
 			  exclude-fn))
 
 (cl-defmethod buffer-manager-current-instance ((this buffer-manager)
@@ -600,8 +600,8 @@ The default uses:
 	     ;; the frame
 	     (setq entries
 		   (remove nil
-			   (mapcar #'(lambda (arg)
-				       (unless (memq arg win-entries) arg))
+			   (mapcar (lambda (arg)
+				     (unless (memq arg win-entries) arg))
 				   entries)))
 	     ;; get rid of `win-entries' now that we've used it to set diff
 	     (setq win-entries nil)
@@ -657,7 +657,6 @@ CRITERIA is:
   a string: the buffer name to switch to the buffer entry with that name
   a symbol: if `first', the highest priority buffer entry is selected,
 	    if `last' the last most priority buffer entry is selected,
-	    if `next' the next entry in the list or start back with the first
 	    if `cycle' the next (after the current) most desirable
 	    buffer entry is selected based on the value of slot `cycle-method'"
   (let* ((entries (buffer-manager-entries this))
@@ -666,9 +665,9 @@ CRITERIA is:
     (setq entry
 	  (cond ((stringp criteria)
 		 (buffer-manager-first-entry
-		  this #'(lambda (entry)
-			   (string-equal criteria
-					 (buffer-entry-name entry)))))
+		  this (lambda (entry)
+			 (string-equal criteria
+				       (buffer-entry-name entry)))))
 		((buffer-manager-entry-exists-p this criteria))
 		((= len 0) nil)
 		((= len 1) (car entries))
@@ -755,9 +754,9 @@ buffer.  The default is `buffer-entry-name'."
 	      def (or default (if def-entry (funcall name-fn def-entry))))))
     (setq prompt (or prompt (capitalize (buffer-manager-name this))))
     (setq prompt (choice-program-default-prompt prompt def))
-    (setq name-map (mapcar #'(lambda (entry)
-			       (cons (funcall name-fn entry)
-				     (buffer-entry-name entry)))
+    (setq name-map (mapcar (lambda (entry)
+			     (cons (funcall name-fn entry)
+				   (buffer-entry-name entry)))
 			   entries))
     (with-slots (read-history) this
       (let ((hist read-history)
@@ -792,16 +791,16 @@ buffer.  The default is `buffer-entry-name'."
   (cl-flet* ((get-entries
 	      ()
 	      (sort (buffer-manager-entries this)
-		    #'(lambda (a b)
-			(string< (buffer-entry-name a)
-				 (buffer-entry-name b)))))
+		    (lambda (a b)
+		      (string< (buffer-entry-name a)
+			       (buffer-entry-name b)))))
 	     (get-max
 	      (getter-fn)
 	      (let ((entries (get-entries)))
 		(when entries
 		  (apply #'max
-			 (mapcar #'(lambda (entry)
-				     (length (funcall getter-fn entry)))
+			 (mapcar (lambda (entry)
+				   (length (funcall getter-fn entry)))
 				 (get-entries))))))
 	     (entry-wd
 	      (entry)
@@ -834,8 +833,8 @@ buffer.  The default is `buffer-entry-name'."
 	(insert (apply 'format format-meta headers)
 		"\n"
 		(apply 'format format-meta
-		       (mapcar #'(lambda (arg)
-				   (make-string (length arg) ?-))
+		       (mapcar (lambda (arg)
+				 (make-string (length arg) ?-))
 			       headers))
 		"\n")
 	(cl-do ((lst entries (setq lst (cdr lst)))
@@ -958,9 +957,9 @@ In this buffer, you can rename and go to %ss"
 
 (cl-defmethod buffer-manager-bind-interactive-functions ((this buffer-manager))
   (let ((funcs (buffer-manager-interactive-functions this 'none))
-	(bindings (car (delq nil (mapcar #'(lambda (entry)
-					     (if (null (car entry))
-						 (cadr entry)))
+	(bindings (car (delq nil (mapcar (lambda (entry)
+					   (if (null (car entry))
+					       (cadr entry)))
 					 buffer-manage-key-bindings)))))
     (setq bindings
 	  (append bindings
@@ -1006,9 +1005,9 @@ In this buffer, you can rename and go to %ss"
 (defun buffer-manager-read-bind-choices (&optional use-last-default-p)
   "Read user input that indicates how to switch between buffer entries.
 USE-LAST-DEFAULT-P, switch to the previous setting if non-nil."
-  (let ((choices (mapcar #'(lambda (inst)
-			     (cons (buffer-manager-name (symbol-value inst))
-				   inst))
+  (let ((choices (mapcar (lambda (inst)
+			   (cons (buffer-manager-name (symbol-value inst))
+				 inst))
 			 buffer-manage-remap-instances))
 	(second (cl-second buffer-manager-read-bind-choices-history)))
     (cdr (assoc
@@ -1220,13 +1219,13 @@ Replace status for REPLACE and the selection uses the return
 value of FUNC."
   (buffer-manage-mode-assert)
   (let ((this buffer-manager-instance))
-    (maphash #'(lambda (key val)
-		 (when (eq status val)
-		   (let ((entry (buffer-manager-entry this key)))
-		     (and entry (funcall func this entry)))
-		   (if replace
-		       (puthash key replace buffer-entry-status)
-		     (remhash key buffer-entry-status))))
+    (maphash (lambda (key val)
+	       (when (eq status val)
+		 (let ((entry (buffer-manager-entry this key)))
+		   (and entry (funcall func this entry)))
+		 (if replace
+		     (puthash key replace buffer-entry-status)
+		   (remhash key buffer-entry-status))))
 	     buffer-entry-status)
     (buffer-manage-mode-refresh)))
 
