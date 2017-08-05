@@ -121,18 +121,15 @@ process dies.")
   :abstract true
   :documentation "Abstract class for all buffer entry like objects.")
 
-(cl-defmethod initialize-instance ((this buffer-entry) &rest rest)
-  (apply #'cl-call-next-method this rest)
+(cl-defmethod initialize-instance ((this buffer-entry) &optional slots)
+  (cl-call-next-method this slots)
   (let ((win-cfg (current-window-configuration))
 	new-buf)
     (with-slots (name sentinel manager) this
-      ;(setq name (or name (buffer-manager-conical-name manager)))
       (unwind-protect
 	  (let ((new-buf (buffer-entry-create-buffer this)))
-	    ;(setq name (config-manager-entry-default-name this name))
 	    (oset this :buffer new-buf)
 	    (with-current-buffer new-buf
-					;(rename-buffer name t)
 	      (set (make-local-variable 'buffer-entry-instance) this)
 	      (add-hook 'post-command-hook
 			'buffer-manage-post-command-hook nil t)
@@ -160,9 +157,16 @@ it and let the garbage collector get it."
 (cl-defmethod object-print-fields ((this buffer-entry))
   (append (cl-call-next-method) '(:buffer :kill-frame-p)))
 
-(cl-defmethod config-entry-name ((this buffer-entry))
-  (buffer-entry-live-p this t)
-  (cl-call-next-method this))
+(cl-defmethod config-entry-description ((this buffer-entry))
+  "Get the description of the configuration entry."
+  (with-slots (buffer) this
+    (with-current-buffer buffer
+      (if (string-match abbreviated-home-dir default-directory)
+	  (->> (match-string 0 default-directory)
+	       length
+	       (substring default-directory)
+	       (concat "~/"))
+	default-directory))))
 
 (cl-defmethod buffer-entry-rename ((this buffer-entry) name)
   "Rename the buffer entry to NAME and return the new entry.
@@ -194,7 +198,6 @@ time."
 
 
 
-;;; class buffer-manager
 (defclass buffer-manager (config-manager)
   ((start-dir :initarg :start-dir
 	      :initform "~/"
@@ -227,6 +230,11 @@ Used for history when reading user input when switching to other buffers."))
   :abstract true
   :documentation "Manages buffer entries.")
 
+(cl-defmethod initialize-instance ((this buffer-manager) &optional slots)
+  (->> '(:list-header-fields ("C" "Name" "Working Directory"))
+       (append slots)
+       (cl-call-next-method this)))
+
 (cl-defmethod destructor ((this buffer-manager))
   "Dispose by disping all buffer entries.
 Don't use this instance after this method is called.  Instead, don't reference
@@ -240,13 +248,8 @@ it and let the garbage collector get it."
 	    (setq new-entries (append new-entries (cons entry nil)))))
       (setq entries new-entries))))
 
-(cl-defmethod buffer-manager-create-entry ((this buffer-manager) &rest args)
-  "Factory method to create a buffer entry \(factory method)."
-  (error "No implementation of `buffer-manager-create-entry' for class `%S'"
-	 (eieio-object-class this)))
-
-(cl-defmethod buffer-manager-new-entry ((this buffer-manager) &optional
-					name start-dir new-frame-p switchp)
+(cl-defmethod config-manager-insert-entry ((this buffer-manager) &optional
+					   name start-dir new-frame-p switchp)
   "Create a new entry instance and return its name.
 If NAME is non-nil, use it as the name of the buffer entry,
 otherwise, create a use a auto generated name."
@@ -254,12 +257,12 @@ otherwise, create a use a auto generated name."
 			     (or start-dir
 				 (buffer-manager-start-dir this)
 				 default-directory)))
-	 (entry (config-manager-insert-entry
+	 (entry (config-manager-add-entry
 		 this
-		 :sentinel 'buffer-manager-process-sentinel
-		 :manager this
-		 :kill-frame-p new-frame-p
-		 :name name)))
+		 `(:sentinel buffer-manager-process-sentinel
+			     :manager ,this
+			     :kill-frame-p ,new-frame-p
+			     :name ,name))))
     (with-current-buffer (buffer-entry-buffer entry)
       (rename-buffer (config-entry-name entry) nil)
       (set (make-local-variable 'buffer-manager-instance) this))
@@ -437,6 +440,10 @@ user hit ENTER."
 	(goto-char (point-max))
 	(set-window-point (get-buffer-window (current-buffer)) (point-max))))))
 
+(cl-defmethod config-manager-activate ((this buffer-manager) criteria)
+  (cl-call-next-method this criteria)
+  (buffer-manager-switch this 'first))
+
 (cl-defmethod buffer-manager-switch ((this buffer-manager) criteria
 				     &optional new-frame-p window-cfg)
   "Switch to a buffer entry.
@@ -449,8 +456,7 @@ it.
 WINDOW-CFG, if non-`nil', split the window based on the value, which is
 currently just the symbol `split'."
   (let ((entry (or (config-manager-entry this criteria)
-		   ;(config-manager-activate this criteria)
-		   (buffer-manager-new-entry this))))
+		   (config-manager-insert-entry this))))
     (if new-frame-p
 	(save-window-excursion
 	  (select-window (frame-first-window (make-frame-command)))
@@ -464,21 +470,7 @@ currently just the symbol `split'."
 	 (if (eq 'split window-cfg)
 	     (save-excursion (display-buffer buf))
 	   (switch-to-buffer buf)))))
-    ;(config-manager-cycle-entries this entry)
     entry))
-
-(cl-defmethod buffer-manager-read-new-name ((this buffer-manager)
-					    &optional prompt auto-generate-p)
-  "Read a buffer name from user input."
-  (let ((def (config-manager-entry-default-name this))
-	name)
-    (if auto-generate-p
-	def
-      (setq prompt (or prompt (capitalize (config-manager-name this))))
-      (setq prompt (choice-program-default-prompt prompt def))
-      (setq name (read-string prompt nil nil def))
-      (if (= 0 (length name)) (setq name nil))
-      name)))
 
 (cl-defmethod buffer-manager-read-name ((this buffer-manager)
 					&optional prompt require-match
@@ -549,10 +541,10 @@ new buffer in it."
 			(config-manager-name this)
 			(config-manager-name this))
 	       (interactive
-		(list (buffer-manager-read-new-name ,singleton-variable-sym nil
+		(list (config-manager-read-new-name ,singleton-variable-sym nil
 						    (not current-prefix-arg))))
 	       (let* ((this ,singleton-variable-sym))
-		 (buffer-manager-new-entry this name start-dir new-frame-p t))))
+		 (config-manager-insert-entry this name start-dir new-frame-p t))))
 
       ("switch" (defun ,(intern (format "%s-switch" cname)) (&optional name)
 		  ,(format "\
@@ -574,7 +566,7 @@ frame."
 			   this (format "Switch to %s"
 					(config-manager-name this)))
 			(if (= 0 (length (config-manager--entries this)))
-			    (buffer-manager-read-new-name ,singleton-variable-sym
+			    (config-manager-read-new-name ,singleton-variable-sym
 							  nil t))))))
 		  (let* ((this ,singleton-variable-sym)
 			 (entry (buffer-manager-switch this (or name 'cycle))))
@@ -607,7 +599,7 @@ In this buffer, you can rename and go to %ss"
 			 (config-manager-name this))
 		(interactive)
 		(let ((this ,singleton-variable-sym))
-		  (buffer-manage-list
+		  (config-manager-list-entries-buffer;buffer-manage-list
 		   ,singleton-variable-sym
 		   (format "*%s Entries*"
 			   (capitalize (config-manager-name this)))))))
