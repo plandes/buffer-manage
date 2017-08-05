@@ -158,7 +158,7 @@ process dies.")
 	    ;(setq name (config-manager-entry-default-name this name))
 	    (oset this :buffer new-buf)
 	    (with-current-buffer new-buf
-	      ;(rename-buffer name t)
+					;(rename-buffer name t)
 	      (set (make-local-variable 'buffer-entry-instance) this)
 	      (add-hook 'post-command-hook
 			'buffer-manage-post-command-hook nil t)
@@ -196,7 +196,7 @@ it and let the garbage collector get it."
 
 (cl-defmethod config-entry-name ((this buffer-entry))
   (buffer-entry-live-p this t)
-  (apply #'cl-call-next-method this))
+  (cl-call-next-method this))
 
 (cl-defmethod buffer-entry-rename ((this buffer-entry) name)
   "Rename the buffer entry to NAME and return the new entry.
@@ -332,13 +332,14 @@ otherwise, create a use a auto generated name."
 		 this
 		 :sentinel 'buffer-manager-process-sentinel
 		 :manager this
-		 :kill-frame-p new-frame-p)))
-    (if name
-	(config-entry-set-name entry name))
+		 :kill-frame-p new-frame-p
+		 :name name)))
     (with-current-buffer (buffer-entry-buffer entry)
+      (rename-buffer (config-entry-name entry) nil)
       (set (make-local-variable 'buffer-manager-instance) this))
     (message "Created %s" (config-manager-name this))
-    (if switchp (config-manager-switch this entry new-frame-p))
+    (if switchp
+	(buffer-manager-switch this entry new-frame-p))
     entry))
 
 ;; (cl-defmethod config-manager-remove-entry ((this buffer-manager) entry)
@@ -646,16 +647,34 @@ user hit ENTER."
 ;; 	(error "No entry exists that satisfies criteria `%S'" criteria))
 ;;     entry))
 
-(cl-defmethod config-manager-switch ((this buffer-manager) criteria)
-  (let ((entry (cl-call-next-method this criteria)))
-    (let ((win-entries (buffer-manager-window-entries this))
-	  (buf (buffer-entry-buffer entry)))
-      ;; if entry we're going to is already in the frame, switch over to that
-      ;; window in the current frame instead of duplicating windows
-      (if (member entry win-entries)
-	  (select-window (get-buffer-window buf))
-	(switch-to-buffer buf)))
-    (config-manager-cycle-entries this entry)
+(cl-defmethod buffer-manager-switch ((this buffer-manager) criteria
+				     &optional new-frame-p window-cfg)
+  "Switch to a buffer entry.
+If the buffer CRITERIA is the name of the buffer to switch to, go to that
+buffer, otherwise, create a new one with that name and switch to it.
+Returns the buffer entry we switched to based on CRITERIA \(see
+`buffer-manager-entry').
+NEW-FRAME-P, if non-`nil', create a new frame and switch to the new buffer in
+it.
+WINDOW-CFG, if non-`nil', split the window based on the value, which is
+currently just the symbol `split'."
+  (let ((entry (or (config-manager-entry this criteria)
+		   ;(config-manager-activate this criteria)
+		   (buffer-manager-new-entry this))))
+    (if new-frame-p
+	(save-window-excursion
+	  (select-window (frame-first-window (make-frame-command)))
+	  (buffer-manager-switch this entry))
+     (let ((win-entries (buffer-manager-window-entries this))
+	   (buf (buffer-entry-buffer entry)))
+       ;; if entry we're going to is already in the frame, switch over to that
+       ;; window in the current frame instead of duplicating windows
+       (if (member entry win-entries)
+	   (select-window (get-buffer-window buf))
+	 (if (eq 'split window-cfg)
+	     (save-excursion (display-buffer buf))
+	   (switch-to-buffer buf)))))
+    ;(config-manager-cycle-entries this entry)
     entry))
 
 (cl-defmethod buffer-manager-read-new-name ((this buffer-manager)
@@ -846,7 +865,7 @@ frame."
 			    (buffer-manager-read-new-name ,singleton-variable-sym
 							  nil t))))))
 		  (let* ((this ,singleton-variable-sym)
-			 (entry (config-manager-switch this (or name 'cycle))))
+			 (entry (buffer-manager-switch this (or name 'cycle))))
 		    ;;(message "Switched to `%s'" (config-entry-name entry))
 		    )))
       ("toggle-cycle-method"
