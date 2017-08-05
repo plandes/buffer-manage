@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 2015 - 2017 Paul Landes
 
-;; Version: 0.1
+;; Version: 0.2
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: interactive buffer management
 ;; URL: https://github.com/plandes/buffer-manage
-;; Package-Requires: ((emacs "25") (choice-program "0.1"))
+;; Package-Requires: ((emacs "25") (choice-program "0.1") (config-manage "1.0"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -168,15 +168,15 @@ it and let the garbage collector get it."
 	       (concat "~/"))
 	default-directory))))
 
-(cl-defmethod buffer-entry-rename ((this buffer-entry) name)
+(cl-defmethod config-entry-rename ((this buffer-entry) name)
   "Rename the buffer entry to NAME and return the new entry.
 Note that NAME is not buffer name syntax, it is the name of the
 entry."
   (buffer-entry-live-p this t)
+  (cl-call-next-method this name)
   (with-current-buffer (buffer-entry-buffer this)
     (let ((buf-name (config-manager-entry-default-name this name)))
-      (rename-buffer buf-name t)))
-  this)
+      (rename-buffer buf-name t))))
 
 (cl-defmethod buffer-entry-create-buffer ((this buffer-entry))
   "Create the buffer for this entry.
