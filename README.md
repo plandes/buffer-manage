@@ -23,6 +23,20 @@ The library includes support for:
 * Interact with buffer entries and manager as objects with a straight forward
   API.
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+## Table of Contents
+
+- [Usage](#usage)
+- [Extending Packages](#extending-packages)
+- [Entries Mode](#entries-mode)
+    - [Key Bindings](#key-bindings)
+- [Fast Switching](#fast-switching)
+- [Key Bindings](#key-bindings-1)
+- [Extending Libraries](#extending-libraries)
+- [License](#license)
+
+<!-- markdown-toc end -->
+
 
 ## Usage
 
