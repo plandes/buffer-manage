@@ -127,6 +127,11 @@ library instead.  See for [frame customize] project as an example of how to
 extend the *configuration manager*.
 
 
+## Changelog
+
+An extensive changelog is available [here](CHANGELOG.md).
+
+
 ## License
 
 Copyright © 2017 Paul Landes
