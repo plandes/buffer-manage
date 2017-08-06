@@ -61,6 +61,7 @@ you can then manage those buffers by with `C-tab` or `M-x <package name>-list`.
 This mode provides a list of live buffers and (optionally) their working
 directory.
 
+
 ### Key Bindings
 
 The [entries mode buffer](#entries-mode) allows for mouse editing and also the following keys:
@@ -106,6 +107,14 @@ The customize system persists the key bindings for all buffer managers.  You
 can view or modify the buffer management functions with: `M-x
 customize-variable buffer-manage-key-bindings`.  You'll see other registered
 buffer manager extensions in for this customized variable.
+
+
+## Extending Libraries
+
+Extend `buffer-manage.el` if you need to manage many separate buffers.
+However, if you need just a simple persistence or configuration management
+(without buffer management support) you can `require` the `config-manage.el`
+library instead.
 
 
 ## License

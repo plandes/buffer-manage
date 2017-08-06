@@ -11,6 +11,9 @@
 
 (defclass fake-manager (buffer-manager) ())
 
+(cl-defmethod config-manager-entry-default-name ((this fake-manager))
+  "fake")
+
 (defcustom fake-manager-singleton
   (fake-manager "singleton")
   "The singleton fake manager."
