@@ -82,23 +82,22 @@ The [entries mode buffer](#entries-mode) allows for mouse editing and also the f
 
 |Key               |Function                            |Description
 |-----------------:|------------------------------------|-----------------------------------------------------------
-|`d`               |buffer-manage-mode-mark-delete      |Delete a buffer (terminate).                              |
-|`G`               |buffer-manage-mode-refresh          |Refresh the buffer entry listing buffer.                  |
-|`i`               |buffer-manage-mode-new              |Create a new entry.                                       |
-|`n`               |buffer-manage-mode-next             |Called by pressing the `tab` key in `buffer-manage-mode`. |
-|`p`               |buffer-manage-mode-previous         |Called by pressing the `tab` key in `buffer-manage-mode`. |
-|`q`               |buffer-manage-mode-quit             |Quit from within the `buffer-manage-mode`.                |
-|`r`               |buffer-manage-mode-rename           |Rename a buffer to NEW-NAME.                              |
-|`s`               |buffer-manage-mode-mark-show        |Display (show) a buffer.                                  |
-|`u`               |buffer-manage-mode-mark-undelete    |Unmark a buffer for deletion.                             |
-|`v`               |buffer-manage-mode-view             |Activates the buffer entry with name NAME.                |
-|`x`               |buffer-manage-mode-delete-selected  |Delete all entries that are selected for delete.          |
-|`z`               |buffer-manage-mode-show-selected    |Show all entries in one frame that are selected.          |
-|`<C-down>`        |buffer-manage-mode-next             |Called by pressing the `tab` key in `buffer-manage-mode`. |
-|`<C-up>`          |buffer-manage-mode-previous         |Called by pressing the `tab` key in `buffer-manage-mode`. |
-|`<down-mouse-2>`  |buffer-manage-mode-mouse-down       |Call back for mouse down events.                          |
-|`<mouse-2>`       |buffer-manage-mode-mouse-up         |Call back for mouse down events.                          |
-|`<return>`        |buffer-manage-mode-activate-buffer  |Activates the buffer entry with name NAME.                |
+|`d`               |config-manage-mode-mark-delete      |Delete a buffer (terminate).                              |
+|`G`               |config-manage-mode-refresh          |Refresh the buffer entry listing buffer.                  |
+|`i`               |config-manage-mode-new              |Create a new entry.                                       |
+|`n`               |config-manage-mode-next             |Called by pressing the `tab` key in `config-manage-mode`. |
+|`p`               |config-manage-mode-previous         |Called by pressing the `tab` key in `config-manage-mode`. |
+|`q`               |config-manage-mode-quit             |Quit from within the `config-manage-mode`.                |
+|`r`               |config-manage-mode-rename           |Rename a buffer to NEW-NAME.                              |
+|`s`               |config-manage-mode-mark-show        |Display (show) a buffer.                                  |
+|`u`               |config-manage-mode-mark-undelete    |Unmark a buffer for deletion.                             |
+|`v`               |config-manage-mode-view             |Activates the buffer entry with name NAME.                |
+|`x`               |config-manage-mode-delete-selected  |Delete all entries that are selected for delete.          |
+|`<C-down>`        |config-manage-mode-next             |Called by pressing the `tab` key in `config-manage-mode`. |
+|`<C-up>`          |config-manage-mode-previous         |Called by pressing the `tab` key in `config-manage-mode`. |
+|`<down-mouse-2>`  |config-manage-mode-mouse-down       |Call back for mouse down events.                          |
+|`<mouse-2>`       |config-manage-mode-mouse-up         |Call back for mouse down events.                          |
+|`<return>`        |config-manage-mode-activate-buffer  |Activates the buffer entry with name NAME.                |
 
 
 ## Fast Switching
