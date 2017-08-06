@@ -1,13 +1,8 @@
 # Manager Emacs Buffers
 
-[![MELPA badge][melpa-badge]][melpa-link] [![MELPA stable badge][melpa-stable-badge]][melpa-stable-link] [![Travis CI Build Status][travis-badge]][travis-link]
-
-  [melpa-link]: https://melpa.org/#/buffer-manage
-  [melpa-stable-link]: https://stable.melpa.org/#/buffer-manage
-  [melpa-badge]: https://melpa.org/packages/buffer-manage-badge.svg
-  [melpa-stable-badge]: https://stable.melpa.org/packages/buffer-manage-badge.svg
-  [travis-link]: https://travis-ci.org/plandes/buffer-manage
-  [travis-badge]: https://travis-ci.org/plandes/buffer-manage.svg?branch=master
+[![MELPA badge][melpa-badge]][melpa-link]
+[![MELPA stable badge][melpa-stable-badge]][melpa-stable-link]
+[![Travis CI Build Status][travis-badge]][travis-link]
 
 Provides support to multiple managed buffers of any kind.  This is helpful for
 using multiple inferior shells, multiple SQL session buffers or any other piped
@@ -41,10 +36,9 @@ The library includes support for:
 ## Usage
 
 This isn't useful by itself, you need to extend but subclassing eieio (Emacs
-Lisp) objects.  See the [buffer shell](https://github.com/plandes/bshell)
-project for an example.  This is done by extending Emacs `eieio` objects and
-can be done in ~90 lines of code
-(example: [buffer shell](https://github.com/plandes/bshell)).
+Lisp) objects.  See the [buffer shell] project for an example.  This is done by
+extending Emacs `eieio` objects and can be done in ~90 lines of code (example:
+[buffer shell]).
 
 To create your own managed buffer set you must extend `buffer-entry` that
 defines behavior for each created managed buffer.  You must also extend the
@@ -55,21 +49,20 @@ manager itself `buffer-manager`.
 
 This library on its own isn't useful.  It provides a lot of behavior for
 packages that extend it (called *extensions*).  An example of an extension is
-the [buffer shell](https://github.com/plandes/bshell) library and the iSQL
-library (to be made public soon).
+the [buffer shell] library and the iSQL library (to be made public soon).
 
 When extending a package the `buffer-manage` library generates several
-functions and creates keybindings to those functions as described in
-the [Entries Mode](#entries-mode) and [Key Bindings](#key-bindings) sections.
-For this documentation commands/functions that are created are notated as
-`<package name>-<rest of function name>`.  For example, to create a new shell
-with the `bshell` package, you'd use `M-x bshell-new`.
+functions and creates keybindings to those functions as described in the
+[entries mode] and [key bindings] sections.  For this documentation
+commands/functions that are created are notated as `<package name>-<rest of
+function name>`.  For example, to create a new shell with the `bshell` package,
+you'd use `M-x bshell-new`.
 
 
 ## Entries Mode
 
 Any package that extends `buffer-manage` and registered is put in a list and
-can be switched with `C-x C-;` (see [key bindings](#key-bindings)) or `M-x
+can be switched with `C-x C-;` (see [key bindings]) or `M-x
 buffer-manager-bind-functions`.  After you've chosen a buffer manage extension
 you can then manage those buffers by with `C-tab` or `M-x <package name>-list`.
 This mode provides a list of live buffers and (optionally) their working
@@ -78,7 +71,7 @@ directory.
 
 ### Key Bindings
 
-The [entries mode buffer](#entries-mode) allows for mouse editing and also the following keys:
+The [entries mode] buffer allows for mouse editing and also the following keys:
 
 |Key               |Function                            |Description
 |-----------------:|------------------------------------|-----------------------------------------------------------
@@ -113,6 +106,9 @@ ways to cycle through buffers:
 To alternate between these cycling modes use `C-x C-'` or `M-x <package
 name>-toggle-cycle-method`.
 
+**Important:** To get the fast switching or any keybinding support (not
+including the the [entries mode] buffer).
+
 
 ## Key Bindings
 
@@ -127,7 +123,8 @@ buffer manager extensions in for this customized variable.
 Extend `buffer-manage.el` if you need to manage many separate buffers.
 However, if you need just a simple persistence or configuration management
 (without buffer management support) you can `require` the `config-manage.el`
-library instead.
+library instead.  See for [frame customize] project as an example of how to
+extend the *configuration manager*.
 
 
 ## License
@@ -135,3 +132,19 @@ library instead.
 Copyright © 2017 Paul Landes
 
 GNU Lesser General Public License, Version 2.0
+
+
+<!-- links -->
+
+[entries mode]: #entries-mode
+[buffer shell]: https://github.com/plandes/bshell
+[key bindings]: #key-bindings
+[frame customize]: https://github.com/plandes/frame-customize
+
+[melpa-link]: https://melpa.org/#/buffer-manage
+[melpa-stable-link]: https://stable.melpa.org/#/buffer-manage
+[melpa-badge]: https://melpa.org/packages/buffer-manage-badge.svg
+[melpa-stable-badge]: https://stable.melpa.org/packages/buffer-manage-badge.svg
+[travis-link]: https://travis-ci.org/plandes/buffer-manage
+[travis-badge]: https://travis-ci.org/plandes/buffer-manage.svg?branch=master
+	
