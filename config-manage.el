@@ -403,19 +403,21 @@ The default uses:
 where N is an integer.
 
 This is the typical unique name (buffers, files etc) creation."
-  (->> names
-       (-map (lambda (elt)
-	       (if (string-match (concat name "\\(?:<\\([0-9]+\\)>\\)?$") elt)
-		   (let ((expr (match-string 1 elt)))
-		     (or (and expr (read expr))
-			 1)))))
-       (-filter #'identity)
-       (cons -1)
-       (cl-reduce #'max)
-       (funcall (lambda (elt)
-		  (if (> elt -1)
-		      (concat name "<" (-> elt cl-incf prin1-to-string) ">")
-		    name)))))
+  (let* ((regex "\\(?:<\\([0-9]+\\)>\\)?$")
+	 (idxs (->> names
+		    (-map (lambda (elt)
+			    (if (string-match (concat "^" name regex) elt)
+				(let ((expr (match-string 1 elt)))
+				  (or (and expr (read expr)) 1)))))
+		    (-filter #'identity)
+		    (cons 0)))
+	 (to-remove (->> (apply #'max idxs)
+			 1+
+			 (number-sequence 2)))
+	 (idx (car (seq-difference to-remove idxs))))
+    (if idx
+	(concat name "<" (-> idx prin1-to-string) ">")
+      name)))
 
 (cl-defmethod config-manager-add-entry ((this config-manager) &optional slots)
   "Add and optionally create first a new entry if ENTRY is nil."
