@@ -40,6 +40,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'time-stamp)
 (require 'dash)
 (require 'eieio)
