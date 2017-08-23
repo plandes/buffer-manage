@@ -288,6 +288,19 @@ otherwise, create a use a auto generated name."
 	  (switch-to-buffer buf))
 	(other-window 1)))))
 
+(cl-defmethod config-manager-current-instance ((this buffer-manager)
+					       &optional assertp)
+  "Get the current buffer entry instance in the current buffer.
+Return `nil' if this isn't an entry buffer that belongs to this
+`buffer-manager' instance.
+
+ASSERTP, if non-nil, raise an error if there is no current entry."
+  (with-slots (entries) this
+    (if (and (boundp 'buffer-entry-instance)
+	     (member buffer-entry-instance entries))
+	buffer-entry-instance
+      (if assertp (error "Missing buffer entry or wrong buffer")))))
+
 (cl-defmethod config-manager-entry-cycle ((this buffer-manager))
   "Override to provide better support for buffers across multi-window frames."
   (cl-flet* ((current-fn

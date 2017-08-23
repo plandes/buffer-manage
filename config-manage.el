@@ -364,10 +364,16 @@ of the object's internal state.  Sorting is done based on SORT-FORM's value:
 	    (setq entries (sort entries sort-fn)))))
       entries)))
 
-(cl-defmethod config-manager-current-instance ((this config-manager))
+(cl-defmethod config-manager-current-instance ((this config-manager)
+					       &optional assertp)
+  "The current entry we're in/at, if there is one.
+
+ASSERTP, if non-nil, raise an error if there is no current entry."
   (with-slots (last-switched-to) this
     (or last-switched-to
-	(cl-first (config-manager--entries this)))))
+	(cl-first (config-manager--entries this))
+	(and assertp
+	     (error "No current entry")))))
 
 (cl-defmethod config-manager-entry-cycle ((this config-manager))
   "Return the next `cycled' entry based on slot `cycle-method'.
