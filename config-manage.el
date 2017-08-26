@@ -420,11 +420,11 @@ This is the typical unique name (buffers, files etc) creation."
 		    (cons 0)))
 	 (to-remove (->> (apply #'max idxs)
 			 1+
-			 (number-sequence 2)))
+			 (number-sequence 1)))
 	 (idx (car (seq-difference to-remove idxs))))
-    (if idx
-	(concat name "<" (-> idx prin1-to-string) ">")
-      name)))
+    (if (= 1 idx)
+	name
+      (concat name "<" (-> idx prin1-to-string) ">"))))
 
 (cl-defmethod config-manager-add-entry ((this config-manager) &optional slots)
   "Add and optionally create first a new entry if ENTRY is nil."
