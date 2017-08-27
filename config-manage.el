@@ -710,11 +710,6 @@ EVENT mouse event data."
     (if (string= name config-manage-on-mouse-down)
 	(config-manage-mode-activate-buffer name))))
 
-;; (defun config-manage-mode-first-buffer ()
-;;   "Go to the first buffer entry in the buffer listing."
-;;   (goto-char (point-min))
-;;   (forward-line 2))
-
 (defun config-manage-mode-next ()
   "Called by pressing the `tab' key in `config-manage-mode'."
   (interactive)
