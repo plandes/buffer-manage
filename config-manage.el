@@ -294,7 +294,7 @@ SLOTS are passed as a property list on instantiating the object."
       entries)))
 
 (cl-defmethod config-manager-entry-exists-p ((this config-manager) entry)
-  "If ENTRY is an instance of a class or subclass of `buffer-entry' return it."
+  "If ENTRY is an instance of a class or subclass of `config-entry' return it."
   (with-slots (entries) this
     (and (eieio-object-p entry)
 	 (object-of-class-p entry 'config-entry)
@@ -305,13 +305,13 @@ SLOTS are passed as a property list on instantiating the object."
 				    criteria &optional assertp)
   "This returns an entry based on CRITERIA.
 CRITERIA is:
-  a string: the buffer name to switch to the buffer entry with that name
+  a string: the entry name to switch to the entry with that name
   an integer: get it by index
-  a symbol: if `first', the highest priority buffer entry is selected,
-	    if `last' the last most priority buffer entry is selected,
+  a symbol: if `first', the highest priority entry is selected,
+	    if `last' the last most priority entry is selected,
 	    if `next' the next entry in the list or start back with the first
 	    if `cycle' the next (after the current) most desirable
-	    buffer entry is selected based on the value of slot `cycle-method'"
+	    entry is selected based on the value of slot `cycle-method'"
   (let* ((entries (config-manager--entries this))
 	 (len (length entries))
 	 entry)
@@ -378,8 +378,8 @@ ASSERTP, if non-nil, raise an error if there is no current entry."
 (cl-defmethod config-manager-entry-cycle ((this config-manager))
   "Return the next `cycled' entry based on slot `cycle-method'.
 The default uses:
-  last-visit: go to the last visited buffer entry
-	next: go to the next highest priority buffer entry"
+  last-visit: go to the last visited entry
+	next: go to the next highest priority entry"
   (with-slots (last-switched-to cycle-method) this
     (let ((entries (config-manager--entries this))
 	  ;; the current entry we're in (if there is one)
@@ -500,7 +500,7 @@ Returns the config entry we switched to based on CRITERIA \(see
     method))
 
 (cl-defmethod config-manager-list-entries ((this config-manager))
-  "Return a multi-listing of the buffer entries contained in this manager."
+  "Return a multi-listing of the entries contained in this manager."
   (cl-flet* ((get-max
 	      (getter-fn)
 	      (let ((entries (config-manager--entries this)))
@@ -588,7 +588,7 @@ BUFFER-NAME is the name of the buffer holding the entries for the mode."
 
 (cl-defmethod config-manager-read-new-name ((this config-manager)
 					    &optional prompt auto-generate-p)
-  "Read a buffer name from user input."
+  "Read an entry name from user input."
   (let ((def (config-manager-entry-default-name this))
 	name)
     (if auto-generate-p
@@ -633,11 +633,11 @@ BUFFER-NAME is the name of the buffer holding the entries for the mode."
 ;; face definitions
 (defface config-manage-font-lock-headers-face
   '((t (:foreground "red")))
-  "Font Lock mode face used to highlight buffer headerss."
+  "Font Lock mode face used to highlight entry headers."
   :group 'config-manage-font-lock-faces)
 (defface config-manage-font-lock-name-face
   '((t (:foreground "darkcyan")))
-  "Font Lock mode face used to highlight buffer names."
+  "Font Lock mode face used to highlight entry names."
   :group 'config-manage-font-lock-faces)
 (defface config-manage-font-lock-desc-face
   '((t (:foreground "blue")))
@@ -661,7 +661,7 @@ BUFFER-NAME is the name of the buffer holding the entries for the mode."
     (,(format "^.\\{%d\\}.*?[ \t]+\\(.*\\)$" (1+ config-manager-list-col-space))
      1 config-manage-font-lock-desc-face t)
     ("^\\([- \t]+\\)$" 1 config-manage-font-lock-headers-face t))
-  "Additional expressions to highlight in buffer manage mode.")
+  "Additional expressions to highlight in config manage mode.")
 
 (defun config-manage-mode-assert (&optional no-error-p this)
   "Throw an error if not in `config-manage-mode' when NO-ERROR-P is nil.
@@ -685,7 +685,7 @@ Pattern match on THIS if it is given and this is a `config-manager-mode'."
       (set-window-configuration cfg))))
 
 (defun config-manage-mode-name-at-point ()
-  "Return the name of the buffer at the current point if there is one."
+  "Return the name of the entry at the current point if there is one."
   (config-manage-mode-assert)
   (save-excursion
     (beginning-of-line)
@@ -708,7 +708,7 @@ EVENT mouse event data."
   (mouse-set-point event)
   (let ((name (config-manage-mode-name-at-point)))
     (if (string= name config-manage-on-mouse-down)
-	(config-manage-mode-activate-buffer name))))
+	(config-manage-mode-activate-entry name))))
 
 (defun config-manage-mode-next ()
   "Called by pressing the `tab' key in `config-manage-mode'."
@@ -726,8 +726,8 @@ EVENT mouse event data."
   (if (> (line-number-at-pos (point)) 3)
       (forward-line -1)))
 
-(defun config-manage-mode-activate-buffer (&optional name)
-  "Activates the buffer entry with name NAME."
+(defun config-manage-mode-activate-entry (&optional name)
+  "Activates the entry with name NAME."
   (interactive)
   (config-manage-mode-assert)
   (setq name (or name (config-manage-mode-name-at-point)))
@@ -736,7 +736,7 @@ EVENT mouse event data."
     (config-manager-activate this name)))
 
 (defun config-manage-mode-view (&optional name)
-  "Activates the buffer entry with name NAME."
+  "Activates the entry with name NAME."
   (interactive)
   (config-manage-mode-assert)
   (setq name (or name (config-manage-mode-name-at-point)))
@@ -754,7 +754,7 @@ EVENT mouse event data."
       (config-manage-mode-next))))
 
 (defun config-manage-mode-refresh ()
-  "Refresh the buffer entry listing buffer."
+  "Refresh the entry listing buffer."
   (interactive)
   (config-manage-mode-assert)
   (let ((line (count-lines (point-min) (point))))
@@ -839,7 +839,7 @@ Special commands:
 (define-key config-manage-mode-map "q" 'config-manage-mode-quit)
 (define-key config-manage-mode-map [down-mouse-2] 'config-manage-mode-mouse-down)
 (define-key config-manage-mode-map [mouse-2] 'config-manage-mode-mouse-up)
-(define-key config-manage-mode-map [return] 'config-manage-mode-activate-buffer)
+(define-key config-manage-mode-map [return] 'config-manage-mode-activate-entry)
 (define-key config-manage-mode-map "n" 'config-manage-mode-next)
 (define-key config-manage-mode-map "p" 'config-manage-mode-previous)
 (define-key config-manage-mode-map [(control down)] 'config-manage-mode-next)
@@ -856,7 +856,7 @@ Special commands:
 (defvar config-manage-mode-menu-definition
   (list "Config Manage"
 	["Create New" config-manage-mode-new t]
-	["Goto Entry" config-manage-mode-activate-buffer t]
+	["Goto Entry" config-manage-mode-activate-entry t]
 	"-"
 	["Mark Delete" config-manage-mode-mark-delete t]
 	["Unmark" config-manage-mode-mark-undelete t]
