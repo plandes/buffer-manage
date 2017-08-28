@@ -120,12 +120,17 @@ create unerpsist \(optionally) children classes and slots."
 				 (config-persistent-unpersist-value this))))
 		   (setf (slot-value this slot) val)))))))
 
-(cl-defmethod config-persistent-unpersist ((vals list))
+(cl-defmethod config-persistent-unpersist ((vals list) &optional obj)
   "Restore the objects state from VALS, which has a symbols
 `class' and `slots'."
   (let* ((class (cdr (assq 'class vals)))
 	 (slots (cdr (assq 'slots vals)))
-	 (obj (make-instance class)))
+	 (obj (if obj
+		  (if (not (eq (eieio-object-class obj) class))
+		      (error "Class mismatch during unpersist: %S != %S"
+			     (eieio-object-class obj) class)
+		    obj)
+		(make-instance class))))
     (config-persistent-unpersist obj slots)
     obj))
 
@@ -174,6 +179,16 @@ create unerpsist \(optionally) children classes and slots."
 		   (pp state)))
 	 (write-region (point-min) (point-max) file))
        (message "Wrote %s" file)))))
+
+(cl-defmethod config-persistable-load ((this config-persistable))
+  "Restore the state of the persistable object from FILE."
+  (with-slots (file) this
+    (let ((file (expand-file-name file)))
+      (if (file-exists-p file)
+	  (with-temp-buffer
+	    (insert-file-contents file)
+	    (let ((config (read (buffer-string))))
+	      (config-persistent-unpersist config this)))))))
 
 
 
