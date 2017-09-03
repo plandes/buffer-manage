@@ -2,12 +2,9 @@
 
 ;; Copyright (C) 2017 Paul Landes
 
-;; Version: 0.1
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: configuration settings persistable
-;; URL: https://github.com/plandes/config-manage
-;; Package-Requires: ((emacs "25") (choice-program "0.1") (dash))
 
 ;; This file is not part of GNU Emacs.
 
