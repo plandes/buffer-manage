@@ -214,7 +214,7 @@ The description of this entry, used in `config-manager-list-entries-buffer'.")
 NAME's is stripped of properties since it might be fontified when
 generated the buffer in `config-manage-mode'."
   (->> (substring-no-properties name)
-       (set-slot-value this 'name)))
+       (setf (slot-value this 'name))))
 
 (cl-defmethod config-entry-save ((this config-entry))
   "Save the current entry configuration."
