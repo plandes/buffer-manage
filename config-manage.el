@@ -56,8 +56,8 @@
 
 (defclass config-persistent ()
   ((pslots :initarg :pslots
-	  :initform nil
-	  :type list))
+	   :initform nil
+	   :type list))
   :documentation "\
 Super class for objects that want to persist to the file system.
 
@@ -136,13 +136,13 @@ create unerpsist \(optionally) children classes and slots."
 (cl-defmethod object-print ((this config-persistent) &optional strings)
   "Return a string as a representation of the in memory instance of THIS."
   (cl-flet* ((format-obj
-  	      (slot)
-  	      (let ((obj (eieio-oref this slot)))
-  		(format "%S %s"
-  			slot
-  			(cond ((eieio-object-p obj) (object-print obj))
-  			      ((stringp obj) (format "'%s'" obj))
-  			      (obj))))))
+	      (slot)
+	      (let ((obj (eieio-oref this slot)))
+		(format "%S %s"
+			slot
+			(cond ((eieio-object-p obj) (object-print obj))
+			      ((stringp obj) (format "'%s'" obj))
+			      (obj))))))
     (let ((fields (object-print-fields this)))
       (apply #'cl-call-next-method this
 	     (cons (concat (if fields " ")
@@ -164,18 +164,18 @@ create unerpsist \(optionally) children classes and slots."
   "Persist manager and compiler configuration."
   (with-slots (file) this
     (when file
-     (let ((save-class-name (->> this eieio-object-class eieio-class-name))
-	   (state (config-persistent-persist this)))
-       (with-temp-buffer
-	 (insert (format "\
+      (let ((save-class-name (->> this eieio-object-class eieio-class-name))
+	    (state (config-persistent-persist this)))
+	(with-temp-buffer
+	  (insert (format "\
 ;; -*- emacs-lisp -*- <%s %s>
 ;; Object: %s.  Don't change this file.\n"
-			 (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
-			 file save-class-name))
-	 (insert (with-output-to-string
-		   (pp state)))
-	 (write-region (point-min) (point-max) file))
-       (message "Wrote %s" file)))))
+			  (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
+			  file save-class-name))
+	  (insert (with-output-to-string
+		    (pp state)))
+	  (write-region (point-min) (point-max) file))
+	(message "Wrote %s" file)))))
 
 (cl-defmethod config-persistable-load ((this config-persistable))
   "Restore the state of the persistable object from FILE."
@@ -195,7 +195,7 @@ create unerpsist \(optionally) children classes and slots."
 	 :initform nil
 	 :type (or null string)
 	 :reader config-entry-name
- 	 :protection :protected)
+	 :protection :protected)
    (description :initarg :description
 		:initform "<none>"
 		:reader config-entry-description
@@ -442,14 +442,14 @@ This is the typical unique name (buffers, files etc) creation."
 (cl-defmethod config-manager-add-entry ((this config-manager) &optional slots)
   "Add and optionally create first a new entry if ENTRY is nil."
   (let* ((entry (config-manager-new-entry this slots))
-  	 (name (or (config-entry-name entry)
+	 (name (or (config-entry-name entry)
 		   (config-manager-entry-default-name this))))
     (with-slots (entries entry-index) this
       (->> entries
-  	   (-map (lambda (elt)
-  		   (config-entry-name elt)))
-  	   (config-manager-iterate-name name)
-  	   (config-entry-set-name entry))
+	   (-map (lambda (elt)
+		   (config-entry-name elt)))
+	   (config-manager-iterate-name name)
+	   (config-entry-set-name entry))
       (config-manager-cycle-entries this entry 'after)
       entry)))
 
@@ -683,9 +683,9 @@ Pattern match on THIS if it is given and this is a `config-manager-mode'."
   (let ((matchp (and (eq major-mode 'config-manage-mode)
 		     (or (not this)
 			 (equal this config-manager-instance)))))
-   (if (and (not no-error-p) (not matchp))
-       (error "Must be in `config-manage-mode' for this command or wrong manager")
-     matchp)))
+    (if (and (not no-error-p) (not matchp))
+	(error "Must be in `config-manage-mode' for this command or wrong manager")
+      matchp)))
 
 (defun config-manage-mode-quit ()
   "Quit from within the `config-manage-mode'."
