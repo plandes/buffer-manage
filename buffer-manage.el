@@ -168,15 +168,14 @@ it and let the garbage collector get it."
 	       (concat "~/"))
 	default-directory))))
 
-(cl-defmethod config-entry-rename ((this buffer-entry) name)
+(cl-defmethod config-entry-set-name ((this buffer-entry) name)
   "Rename the buffer entry to NAME and return the new entry.
 Note that NAME is not buffer name syntax, it is the name of the
 entry."
   (buffer-entry-live-p this t)
   (cl-call-next-method this name)
   (with-current-buffer (buffer-entry-buffer this)
-    (let ((buf-name (config-manager-entry-default-name this name)))
-      (rename-buffer buf-name t))))
+    (rename-buffer name t)))
 
 (cl-defmethod buffer-entry-create-buffer ((this buffer-entry))
   "Create the buffer for this entry.
@@ -626,7 +625,7 @@ In this buffer, you can rename and go to %ss"
 			 (default (file-name-nondirectory
 				   (directory-file-name default-directory)))
 			 (name (buffer-manager-read-name this "New name")))
-		    (buffer-entry-rename entry name))))
+		    (config-entry-set-name entry name))))
 
       ("display-all" (defun ,(intern (format "%s-display-all" cname)) ()
 		       "Show all entries in the current frame."

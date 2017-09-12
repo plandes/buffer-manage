@@ -195,7 +195,6 @@ create unerpsist \(optionally) children classes and slots."
 	 :initform nil
 	 :type (or null string)
 	 :reader config-entry-name
-	 :writer config-entry-set-name
  	 :protection :protected)
    (description :initarg :description
 		:initform "<none>"
@@ -209,6 +208,14 @@ The description of this entry, used in `config-manager-list-entries-buffer'.")
   :abstract true
   :documentation "Abstract class for all configurable entries.")
 
+(cl-defmethod config-entry-set-name ((this config-entry) name)
+  "Set the name of the entry to NAME.
+
+NAME's is stripped of properties since it might be fontified when
+generated the buffer in `config-manage-mode'."
+  (->> (substring-no-properties name)
+       (set-slot-value this 'name)))
+
 (cl-defmethod config-entry-save ((this config-entry))
   "Save the current entry configuration."
   nil)
@@ -216,11 +223,6 @@ The description of this entry, used in `config-manager-list-entries-buffer'.")
 (cl-defmethod config-entry-restore ((this config-entry))
   "Restore the current entry configuration."
   nil)
-
-(cl-defmethod config-entry-rename ((this config-entry) name)
-  "Rename the config entry to NAME and return the new entry."
-  (with-slots (name) this
-    (oset this :name name)))
 
 
 
@@ -245,7 +247,6 @@ This parameter is used as the default for `criteria' \(see
    (entries :initarg :entries
 	    :initform nil		; initialize with 0 entries
 	    :type (or null list)
-	    ;:reader config-manager--entries
 	    :protection :private
 	    :documentation
 	    "Contains the data structure for the buffer entries.")
@@ -827,7 +828,7 @@ value of FUNC."
   (config-manage-mode-assert)
   (let ((name (config-manage-mode-name-at-point))
 	(this config-manager-instance))
-    (config-entry-rename (config-manager-entry this name) new-name)
+    (config-entry-set-name (config-manager-entry this name) new-name)
     (config-manage-mode-refresh)))
 
 (defun config-manage-mode-new ()
