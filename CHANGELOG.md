@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.6] - 2018-05-28
+### Added
+- `config-persistent-reset` to clear state of persistent configuration objects.
+
 ## [0.5] - 2017-09-03
 ### Changed
 - Dependencies and headers to be adhere more to convention.
@@ -35,7 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 First major release.
 
 
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.5...HEAD
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.6...HEAD
+[0.6]: https://github.com/plandes/buffer-manage/compare/v0.5...v0.6
 [0.5]: https://github.com/plandes/buffer-manage/compare/v0.4...v0.5
 [0.4]: https://github.com/plandes/buffer-manage/compare/v0.3...v0.4
 [0.3]: https://github.com/plandes/buffer-manage/compare/v0.2...v0.3

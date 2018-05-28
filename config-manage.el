@@ -131,6 +131,13 @@ create unerpsist \(optionally) children classes and slots."
     (config-persistent-unpersist obj slots)
     obj))
 
+(cl-defmethod config-persistent-reset ((this config-persistent))
+  "Reset all persistable slots to initial state.
+This implementation sets all slots to nil."
+  (with-slots (pslots) this
+    (dolist (slotsym pslots)
+      (setf (slot-value this slotsym) nil))))
+
 (cl-defmethod object-print-fields ((this config-persistent)) nil)
 
 (cl-defmethod object-print ((this config-persistent) &optional strings)
