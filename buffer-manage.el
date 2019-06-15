@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015 - 2018 Paul Landes
 
-;; Version: 0.7
+;; Version: 0.8
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: interactive buffer management
@@ -611,7 +611,7 @@ In this buffer, you can rename and go to %ss"
 			 (config-manager-name this))
 		(interactive)
 		(let ((this ,singleton-variable-sym))
-		  (config-manager-list-entries-buffer;buffer-manage-list
+		  (config-manager-list-entries-buffer
 		   ,singleton-variable-sym
 		   (format "*%s Entries*"
 			   (capitalize (config-manager-name this)))))))

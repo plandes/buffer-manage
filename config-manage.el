@@ -41,6 +41,7 @@
 (require 'time-stamp)
 (require 'dash)
 (require 'eieio)
+(require 'eieio-base)
 (require 'choice-program)
 
 
@@ -54,7 +55,7 @@
 
 
 
-(defclass config-persistent ()
+(defclass config-persistent (eieio-named)
   ((pslots :initarg :pslots
 	   :initform nil
 	   :type list))
@@ -140,11 +141,11 @@ This implementation sets all slots to nil."
 
 (cl-defmethod object-print-fields ((this config-persistent)) nil)
 
-(cl-defmethod object-print ((this config-persistent) &optional strings)
+(cl-defmethod object-print ((this config-persistent) &rest strings)
   "Return a string as a representation of the in memory instance of THIS."
   (cl-flet* ((format-obj
 	      (slot)
-	      (let ((obj (eieio-oref this slot)))
+	      (let ((obj (slot-value this slot)))
 		(format "%S %s"
 			slot
 			(cond ((eieio-object-p obj) (object-print obj))
@@ -152,11 +153,11 @@ This implementation sets all slots to nil."
 			      (obj))))))
     (let ((fields (object-print-fields this)))
       (apply #'cl-call-next-method this
-	     (cons (concat (if fields " ")
-			   (mapconcat #'format-obj
-				      fields
-				      " "))
-		   strings)))))
+      	     (concat (if fields " ")
+      		     (mapconcat #'format-obj
+      				fields
+      				" "))
+      	     strings))))
 
 
 
@@ -215,13 +216,19 @@ The description of this entry, used in `config-manager-list-entries-buffer'.")
   :abstract true
   :documentation "Abstract class for all configurable entries.")
 
+(cl-defmethod initialize-instance ((this config-entry) &optional args)
+  (let ((name (plist-get args :name)))
+    (and name (setq args (plist-put args :object-name name))))
+  (cl-call-next-method this args))
+
 (cl-defmethod config-entry-set-name ((this config-entry) name)
   "Set the name of the entry to NAME.
 
 NAME's is stripped of properties since it might be fontified when
 generated the buffer in `config-manage-mode'."
-  (->> (substring-no-properties name)
-       (setf (slot-value this 'name))))
+  (let ((name (substring-no-properties name)))
+    (setf (slot-value this 'name) name
+	  (slot-value this 'object-name) name)))
 
 (cl-defmethod config-entry-save ((this config-entry))
   "Save the current entry configuration."
