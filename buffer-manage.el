@@ -1,6 +1,6 @@
 ;;; buffer-manage.el --- manage buffers
 
-;; Copyright (C) 2015 - 2018 Paul Landes
+;; Copyright (C) 2015 - 2019 Paul Landes
 
 ;; Version: 0.8
 ;; Author: Paul Landes

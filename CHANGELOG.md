@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+
+## [0.8] - 2019-06-15
+### Changed
+- Better compatibility with Emacs 26.
+
+
 ## [0.6] - 2018-05-28
 ### Added
 - `config-persistent-reset` to clear state of persistent configuration objects.
@@ -39,7 +45,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 First major release.
 
 
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.6...HEAD
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.8...HEAD
+[0.8]: https://github.com/plandes/buffer-manage/compare/v0.7...v0.8
+[0.7]: https://github.com/plandes/buffer-manage/compare/v0.6...v0.7
 [0.6]: https://github.com/plandes/buffer-manage/compare/v0.5...v0.6
 [0.5]: https://github.com/plandes/buffer-manage/compare/v0.4...v0.5
 [0.4]: https://github.com/plandes/buffer-manage/compare/v0.3...v0.4
