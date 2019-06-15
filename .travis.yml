@@ -17,7 +17,7 @@ before_install:
   - cask --version
 
 env:
-  - EVM_EMACS=emacs-25.1-travis
+  - EVM_EMACS=emacs-26.1-travis
 
 script:
   - EMACS=$(which emacs) make test
