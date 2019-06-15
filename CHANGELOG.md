@@ -17,9 +17,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `config-persistent-reset` to clear state of persistent configuration objects.
 
+
 ## [0.5] - 2017-09-03
 ### Changed
 - Dependencies and headers to be adhere more to convention.
+
 
 ## [0.4] - 2017-08-27
 ### Changed
