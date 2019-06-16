@@ -62,11 +62,11 @@ Whether or not the property is needed for compilation, run, or clean")
   :documentation "\
 The meta data property of a `config-prop-entry', which persists as a slot.")
 
-(cl-defmethod initialize-instance ((this config-prop) &optional args)
+(cl-defmethod initialize-instance ((this config-prop) &optional slots)
   (dolist (elt (list :object-name :prop-entry :prompt))
-    (unless (plist-get args elt)
+    (unless (plist-get slots elt)
       (error "Missing initarg: %S in %s" elt this)))
-  (cl-call-next-method this args)
+  (cl-call-next-method this slots)
   (set (slot-value this 'history) nil))
 
 (cl-defmethod object-print ((this config-prop) &rest strings)
@@ -204,11 +204,11 @@ This is always used for `completion-ignore-case'."))
 		   :documentation "\
 The major mode to use to validate/select `config-file` buffers.")))
 
-(cl-defmethod initialize-instance ((this config-file-prop) &optional args)
+(cl-defmethod initialize-instance ((this config-file-prop) &optional slots)
   (dolist (elt (list :validate-modes))
-    (unless (plist-get args elt)
+    (unless (plist-get slots elt)
       (error "Missing initarg: %S" elt)))
-  (cl-call-next-method this args))
+  (cl-call-next-method this slots))
 
 (cl-defmethod config-prop-default-input ((this config-file-prop))
   nil)
@@ -267,26 +267,26 @@ The major mode to use to validate/select `config-file` buffers.")))
   :method-invocation-order :c3
   :documentation "A property based configurable `config-entry'.
 All properties are added in each sub class's `initialize-instance' method as
-the :props plist argument in ARGS.
+the :props plist argument in SLOTS.
 
 Important: Extend from this class _last_ so that it captures all proprties
 since this class sets :pslots in the `config-persistent' subclass.")
 
-(cl-defmethod initialize-instance ((this config-prop-entry) &optional args)
-  (let* ((props (plist-get args :props))
+(cl-defmethod initialize-instance ((this config-prop-entry) &optional slots)
+  (let* ((props (plist-get slots :props))
 	 (choices (mapcar #'(lambda (prop)
 			      (slot-value prop 'object-name))
 			  props)))
-    (setq args (plist-put args :last-selection
-			  (config-choice-prop :object-name 'last-selection
-					      :prompt "Property"
-					      :prop-entry this
-					      :choices choices
-					      :input-type 'last))
-	  args (plist-put args :pslots
-			  (append (plist-get args :pslots) choices))
-	  args (plist-put args :props props)))
-  (cl-call-next-method this args))
+    (setq slots (plist-put slots :last-selection
+			   (config-choice-prop :object-name 'last-selection
+					       :prompt "Property"
+					       :prop-entry this
+					       :choices choices
+					       :input-type 'last))
+	  slots (plist-put slots :pslots
+			   (append (plist-get slots :pslots) choices))
+	  slots (plist-put slots :props props)))
+  (cl-call-next-method this slots))
 
 (cl-defmethod object-print ((this config-prop-entry) &rest strings)
   (apply #'cl-call-next-method this
