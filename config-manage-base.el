@@ -42,19 +42,17 @@
 (config-manage-declare-variables config-manager-instance)
 (defvar config-entry-status)
 
+;; This class is necessary since EIEIO list types can't unpersist as they produce
+;; this error:
+;;   eieio-persistent-validate/fix-slot-value: In save file, list of object
+;;   constructors found, but no :type specified for slot displays of type nil
 (defclass config-persistent (eieio-named)
   ((pslots :initarg :pslots
 	   :initform nil
 	   :type list))
   :method-invocation-order :c3
   :documentation "\
-Super class for objects that want to persist to the file system.
-
-This class is necessary since EIEIO list types can't unpersist as they produce
-this error:
-
-  eieio-persistent-validate/fix-slot-value: In save file, list of object
-  constructors found, but no :type specified for slot displays of type nil")
+Super class for objects that want to persist to the file system.")
 
 (cl-defmethod initialize-instance ((this config-persistent) &optional slots)
   

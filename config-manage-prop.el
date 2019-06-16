@@ -63,6 +63,7 @@ Whether or not the property is needed for compilation, run, or clean")
 	      :initform nil
 	      :type boolean
 	      :documentation "Whether or not to persist the property."))
+  :method-invocation-order :c3
   :documentation "\
 The meta data property of a `config-prop-entry', which persists as a slot.")
 
@@ -172,6 +173,7 @@ Either this is non-nil or :choices is, but not both.")
 		:type boolean
 		:documentation "\
 This is always used for `completion-ignore-case'."))
+  :method-invocation-order :c3
   :documentation "Property that prompts for a selection of a list of choices.")
 
 (cl-defmethod config-choice-prop-choices ((this config-choice-prop))
@@ -192,6 +194,7 @@ This is always used for `completion-ignore-case'."))
 
 (defclass config-choice-description-prop (config-choice-prop)
   ()
+  :method-invocation-order :c3
   :documentation "Property that prompts for a selection of a list of choices.")
 
 (cl-defmethod config-prop-read ((this config-choice-description-prop))
@@ -210,7 +213,9 @@ This is always used for `completion-ignore-case'."))
 		   :initform nil
 		   :type list
 		   :documentation "\
-The major mode to use to validate/select `config-file` buffers.")))
+The major mode to use to validate/select `config-file` buffers."))
+  :method-invocation-order :c3
+  :documentation "Property that prompts for a file.")
 
 (cl-defmethod initialize-instance ((this config-file-prop) &optional slots)
   (dolist (elt (list :validate-modes))
