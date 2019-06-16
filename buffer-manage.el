@@ -119,16 +119,18 @@ process dies.")
 	     :type (or null function)
 	     :protection :protected))
   :abstract true
+  :method-invocation-order :c3
   :documentation "Abstract class for all buffer entry like objects.")
 
 (cl-defmethod initialize-instance ((this buffer-entry) &optional slots)
   (cl-call-next-method this slots)
   (let ((win-cfg (current-window-configuration))
+	name (config-entry-name this)
 	new-buf)
-    (with-slots (name sentinel manager) this
+    (with-slots (sentinel manager) this
       (unwind-protect
 	  (let ((new-buf (buffer-entry-create-buffer this)))
-	    (oset this :buffer new-buf)
+	    (setf (slot-value this 'buffer) new-buf)
 	    (with-current-buffer new-buf
 	      (set (make-local-variable 'buffer-entry-instance) this)
 	      (add-hook 'post-command-hook
@@ -150,7 +152,7 @@ it and let the garbage collector get it."
      (when (get-buffer-process buffer)
        (buffer-entry-insert this "exit" t)
        (sit-for 0.5)))
-    (if (oref this kill-frame-p)
+    (if (slot-value this 'kill-frame-p)
 	(delete-frame (window-frame (selected-window))))
     (kill-buffer (buffer-entry-buffer this))))
 
@@ -227,12 +229,13 @@ are in the current frame.")
 		 :documentation "\
 Used for history when reading user input when switching to other buffers."))
   :abstract true
+  :method-invocation-order :c3
   :documentation "Manages buffer entries.")
 
 (cl-defmethod initialize-instance ((this buffer-manager) &optional slots)
-  (->> '(:list-header-fields ("C" "Name" "Working Directory"))
-       (append slots)
-       (cl-call-next-method this)))
+  (setq slots (plist-put slots :list-header-fields
+			 '("C" "Name" "Working Directory")))
+  (cl-call-next-method this slots))
 
 (cl-defmethod destructor ((this buffer-manager))
   "Dispose by disping all buffer entries.
@@ -261,7 +264,7 @@ otherwise, create a use a auto generated name."
 		 `(:sentinel buffer-manager-process-sentinel
 			     :manager ,this
 			     :kill-frame-p ,new-frame-p
-			     :name ,name))))
+			     :object-name ,name))))
     (with-current-buffer (buffer-entry-buffer entry)
       (rename-buffer (config-entry-name entry) nil)
       (set (make-local-variable 'buffer-manager-instance) this))
