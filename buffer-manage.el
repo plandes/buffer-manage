@@ -50,6 +50,10 @@
 (require 'choice-program-complete)
 (require 'config-manage)
 
+;; buffer local vars to silence compiler
+(defvar buffer-manager-instance)
+(defvar buffer-entry-instance)
+
 (defgroup buffer-manage nil
   "Buffer management and tracking"
   :group 'buffer-manage
@@ -82,12 +86,6 @@ See `buffer-manager-bind-functions'."
 				      (const :tag "Global Keymap" nil)
 				      (symbol :tag "Specific"))
 			      (string :tag "Binding"))))))
-
-;; buffer local vars to silence compiler
-(defvar buffer-manager-instance)
-(defvar buffer-entry-instance)
-(defvar buffer-entry-status)
-(defvar org-window-config)
 
 (defvar buffer-manage-remap-instances nil
   "List of all instances that are eligible for remapping of keybindings.
@@ -143,7 +141,7 @@ process dies.")
 			     msg ,this ,manager))))))
 	(set-window-configuration win-cfg)))))
 
-(cl-defmethod destructor ((this buffer-entry))
+(cl-defmethod config-persistent-destruct ((this buffer-entry))
   "Dispose a `buffer-entry' instance by killing it's process.
 Don't use this instance after this method is called.  Instead, don't reference
 it and let the garbage collector get it."
@@ -237,13 +235,13 @@ Used for history when reading user input when switching to other buffers."))
 			 '("C" "Name" "Working Directory")))
   (cl-call-next-method this slots))
 
-(cl-defmethod destructor ((this buffer-manager))
+(cl-defmethod config-persistent-destruct ((this buffer-manager))
   "Dispose by disping all buffer entries.
 Don't use this instance after this method is called.  Instead, don't reference
 it and let the garbage collector get it."
   (with-slots (entries) this
     (dolist (entry entries)
-      (destructor entry))
+      (config-persistent-destruct entry))
     (let (new-entries)
       (dolist (entry entries)
 	(if (buffer-entry-live-p entry)

@@ -62,6 +62,11 @@ this error:
 				 '(object-name))))
   (cl-call-next-method this slots))
 
+(cl-defmethod config-persistent-destruct ((this config-persistent))
+  "Deallocate any resources when the instance falls out of use.
+The EIEIO `destructor' is deprecated in 26.  However is still
+used and needed in this framework.")
+
 (cl-defmethod config-persistent-persist-value ((this config-persistent) val)
   (or (and (consp val)
 	   (or (let ((fval (car val)))
@@ -491,7 +496,7 @@ This is the typical unique name (buffers, files etc) creation."
       (let ((name (config-entry-name entry)))
 	(setq entries (remove entry entries))
 	(config-manager--update-entries this entries)
-	(destructor entry)
+	(config-persistent-destruct entry)
 	entry))))
 
 (cl-defmethod config-manager-activate ((this config-manager) criteria)
@@ -552,7 +557,7 @@ Returns the config entry we switched to based on CRITERIA \(see
 	   (name-len (get-max #'config-entry-name))
 	   (col-space config-manager-list-col-space)
 	   (name-len (or name-len col-space))
-	   (headers (oref this list-header-fields))
+	   (headers (slot-value this 'list-header-fields))
 	   format-meta)
       (dolist (entry entries)
 	(let ((name (config-entry-name entry)))
