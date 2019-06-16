@@ -58,7 +58,11 @@ Whether or not the property is needed for compilation, run, or clean")
    (order :initarg :order
 	  :initform 100
 	  :type integer
-	  :documentation "The order of importance of setting the property."))
+	  :documentation "The order of importance of setting the property.")
+   (transient :initarg :transient
+	      :initform nil
+	      :type boolean
+	      :documentation "Whether or not to persist the property."))
   :documentation "\
 The meta data property of a `config-prop-entry', which persists as a slot.")
 
@@ -68,6 +72,10 @@ The meta data property of a `config-prop-entry', which persists as a slot.")
       (error "Missing initarg: %S in %s" elt this)))
   (cl-call-next-method this slots)
   (set (slot-value this 'history) nil))
+
+(cl-defmethod config-prop-name ((this config-prop))
+  "Return the name of the property."
+  (slot-value this 'object-name))
 
 (cl-defmethod object-print ((this config-prop) &rest strings)
   (with-slots (object-name order) this
@@ -274,17 +282,22 @@ since this class sets :pslots in the `config-persistent' subclass.")
 
 (cl-defmethod initialize-instance ((this config-prop-entry) &optional slots)
   (let* ((props (plist-get slots :props))
-	 (choices (mapcar #'(lambda (prop)
-			      (slot-value prop 'object-name))
-			  props)))
+	 (choices (->> props
+		       (-map #'(lambda (prop)
+				 (config-prop-name prop)))))
+	 (pslots (->> props
+		      (cl-remove-if #'(lambda (prop)
+					(slot-value prop 'transient)))
+		      (-map #'(lambda (prop)
+				 (config-prop-name prop))))))
     (setq slots (plist-put slots :last-selection
 			   (config-choice-prop :object-name 'last-selection
 					       :prompt "Property"
 					       :prop-entry this
 					       :choices choices
 					       :input-type 'last))
-	  slots (plist-put slots :pslots
-			   (append (plist-get slots :pslots) choices))
+	  slots (plist-put slots
+			   :pslots (append (plist-get slots :pslots) pslots))
 	  slots (plist-put slots :props props)))
   (cl-call-next-method this slots))
 
@@ -308,12 +321,12 @@ since this class sets :pslots in the `config-persistent' subclass.")
 	       (cl-print-object this (current-buffer)))))
     (config-persistable-save manager)))
 
-(cl-defmethod config-prop-set-prop ((this config-prop-entry) prop val)
+(cl-defmethod config-prop-set ((this config-prop-entry) prop val)
   "Set a property with name \(symbol) PROP to VAL."
   (config-prop-validate prop val)
-  (setf (slot-value this (slot-value prop 'object-name)) val)
+  (setf (slot-value this (config-prop-name prop)) val)
   (config-prop-save-config this)
-  (message "Set %S to %s" (slot-value prop 'object-name)
+  (message "Set %S to %s" (config-prop-name prop)
 	   (if (stringp val)
 	       val
 	     (prin1-to-string val))))
@@ -330,7 +343,7 @@ since this class sets :pslots in the `config-persistent' subclass.")
   "Get a property by \(symbol) NAME."
   (with-slots (props) this
     (let ((prop-map (mapcar #'(lambda (prop)
-				`(,(slot-value prop 'object-name) . ,prop))
+				`(,(config-prop-name prop) . ,prop))
 			    props)))
       (cdr (assq name prop-map)))))
 
@@ -356,23 +369,23 @@ with \\[universal-argument]."
 	  (t (let ((props (config-prop-by-order this)))
 	       (setq prop (nth (min config-options (length props)) props)))))
     (setq val (or val (config-prop-read prop)))
-    (config-prop-set-prop this prop val)))
+    (config-prop-set this prop val)))
 
 (cl-defmethod config-prop-entry-set-required ((this config-prop-entry))
   "Set all required properties for the prop-entry."
   (dolist (prop (config-prop-by-order this))
-    (let* ((name (slot-value prop 'object-name))
+    (let* ((name (config-prop-name prop))
 	   (val (slot-value this name))
 	   ;; minibuffer reading has odd behavior when this isn't nil
 	   (display-buffer-alist nil))
       (when (and (null val) (slot-value prop 'required))
 	(setq val (config-prop-read prop))
-	(config-prop-set-prop this prop val)))))
+	(config-prop-set this prop val)))))
 
 (cl-defmethod config-persistent-reset ((this config-prop-entry))
   "Wipe all values for the prop-entry."
   (dolist (prop (config-prop-by-order this))
-    (config-prop-set-prop this prop nil))
+    (config-prop-set this prop nil))
   (dolist (prop (config-prop-by-order this))
     (config-persistent-reset prop))
   (message "Cleared %s configuration" (config-entry-name this)))
@@ -397,7 +410,7 @@ See the :prop-entry-doc slot."
       (erase-buffer)
       (insert (format "%s configuration:\n" description))
       (dolist (prop (config-prop-by-order this))
-	(let* ((name (slot-value prop 'object-name))
+	(let* ((name (config-prop-name prop))
 	       (val (or (slot-value this name) "<not set>")))
 	  (insert (format "%S: %s\n" name val))))
       (read-only-mode 1)
