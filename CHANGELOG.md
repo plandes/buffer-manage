@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+## [0.9] - 2019-06-15
+### Added
+- New property based configuration for the `config-manage` library that allows
+  for quick but robust minibuffer configuration of configuration entries.
+
+### Changed
+- Compat with recent EIEIO with better Emacs OO and CLOS symantics.
+
+
 ## [0.8] - 2019-06-15
 ### Changed
 - Better compatibility with Emacs 26.
