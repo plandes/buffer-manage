@@ -351,10 +351,16 @@ since this class sets :pslots in the `config-persistent' subclass.")
 					   config-options)
   "Configure the prop-entry.
 
-CONFIG-OPTIONS is the numeric argument (if any) passed in the iteractive mode
-with \\[universal-argument]."
+CONFIG-OPTIONS informs how to configure the prop-entry.  It is one of:
+  - numeric argument (if any) passed in the iteractive mode with
+    \\[universal-argument].
+  - Either nil or the symbol 'immediate, which prompts for the property to set
+    and then prompts and sets the property itself.
+  - Form (prop-name <property to set>) prompts the specific property and value.
+  - Form (prop-name <property to set> <value>) sets the specified
+    property to the value."
   (let (prop val)
-    (cond ((null config-options)
+    (cond ((or (null config-options) (eq config-options 'immediate))
 	   (with-slots (props last-selection) this
 	     (let ((prop-name (config-prop-read last-selection)))
 	       (setq prop (config-prop-by-name this prop-name)))))
