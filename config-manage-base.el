@@ -175,7 +175,6 @@ This implementation sets all slots to nil."
       				" "))
       	     strings))))
 
-
 
 (defclass config-persistable (config-persistent)
   ((file :initarg :file
@@ -248,6 +247,24 @@ generated the buffer in `config-manage-mode'."
   "Restore the current entry configuration."
   nil)
 
+(cl-defmethod config-persistent-doc ((this config-entry) level)
+  "Write compiler documentation to the current buffer."
+  (with-slots (description) this
+    (let ((doc (-> (eieio-object-class this)
+		   cl--find-class
+		   cl--class-docstring)))
+      (setq doc
+	    (if (not doc)
+		""
+	      (setq doc
+		    (with-temp-buffer
+		      (insert doc)
+		      (goto-char (point-min))
+		      (while (search-forward-regexp "`\\(.+?\\)'" nil t)
+			(replace-match "`\\1`"))
+		      (buffer-string)))
+	      (insert (format "\n\n%s %s\n\n%s\n" (make-string level ?#)
+			      description doc)))))))
 
 
 ;; config manager

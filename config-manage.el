@@ -38,6 +38,7 @@
 
 (require 'config-manage-core)
 (require 'config-manage-base)
+(require 'config-manage-prop)
 (require 'config-manage-mode)
 
 (provide 'config-manage)
