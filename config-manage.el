@@ -59,6 +59,7 @@
   ((pslots :initarg :pslots
 	   :initform nil
 	   :type list))
+  :method-invocation-order :c3
   :documentation "\
 Super class for objects that want to persist to the file system.
 
@@ -67,6 +68,12 @@ this error:
 
   eieio-persistent-validate/fix-slot-value: In save file, list of object
   constructors found, but no :type specified for slot displays of type nil")
+
+(cl-defmethod initialize-instance ((this config-persistent) &optional slots)
+  (setq slots (plist-put slots :pslots
+			 (append (plist-get slots :pslots)
+				 '(object-name))))
+  (cl-call-next-method this slots))
 
 (cl-defmethod config-persistent-persist-value ((this config-persistent) val)
   (or (and (consp val)
@@ -141,6 +148,9 @@ This implementation sets all slots to nil."
 
 (cl-defmethod object-print-fields ((this config-persistent)) nil)
 
+(cl-defmethod object-format ((this config-persistent))
+  (slot-value this 'object-name))
+
 (cl-defmethod object-print ((this config-persistent) &rest strings)
   "Return a string as a representation of the in memory instance of THIS."
   (cl-flet* ((format-obj
@@ -166,6 +176,7 @@ This implementation sets all slots to nil."
 	 :initform nil
 	 :type (or null string)
 	 :documentation "The file to persist the state of the object."))
+  :method-invocation-order :c3
   :documentation "Subclasses that can persist to a file.")
 
 (cl-defmethod config-persistable-save ((this config-persistable))
@@ -199,27 +210,32 @@ This implementation sets all slots to nil."
 
 ;;; config objects
 (defclass config-entry (config-persistent)
-  ((name :initarg :name
-	 :initform nil
-	 :type (or null string)
-	 :reader config-entry-name
-	 :protection :protected)
+  (
+   ;; (name :initarg :name
+   ;; 	 :initform nil
+   ;; 	 :type (or null string)
+   ;; 	 :reader config-entry-name
+   ;; 	 :protection :protected)
    (description :initarg :description
 		:initform "<none>"
 		:reader config-entry-description
 		:type string
-		:documentation "
+		:documentation "\
 The description of this entry, used in `config-manager-list-entries-buffer'.")
    (manager :initarg :manager
 	    :initform nil
 	    :protection :protected))
   :abstract true
+  :method-invocation-order :c3
   :documentation "Abstract class for all configurable entries.")
 
-(cl-defmethod initialize-instance ((this config-entry) &optional args)
-  (let ((name (plist-get args :name)))
-    (and name (setq args (plist-put args :object-name name))))
-  (cl-call-next-method this args))
+;; (cl-defmethod initialize-instance ((this config-entry) &optional args)
+;;   (let ((name (plist-get args :name)))
+;;     (and name (setq args (plist-put args :object-name name))))
+;;   (cl-call-next-method this args))
+
+(cl-defmethod config-entry-name ((this config-entry))
+  (slot-value this 'object-name))
 
 (cl-defmethod config-entry-set-name ((this config-entry) name)
   "Set the name of the entry to NAME.
@@ -227,8 +243,10 @@ The description of this entry, used in `config-manager-list-entries-buffer'.")
 NAME's is stripped of properties since it might be fontified when
 generated the buffer in `config-manage-mode'."
   (let ((name (substring-no-properties name)))
-    (setf (slot-value this 'name) name
-	  (slot-value this 'object-name) name)))
+    (setf (slot-value this 'object-name) name)
+    ;; (setf (slot-value this 'name) name
+    ;; 	  (slot-value this 'object-name) name)
+    ))
 
 (cl-defmethod config-entry-save ((this config-entry))
   "Save the current entry configuration."
@@ -240,12 +258,30 @@ generated the buffer in `config-manage-mode'."
 
 
 
+;; config manager
+
+(defconst config-manager-list-col-space 4
+  "Space between columns.")
+
+(defconst config-manager-status-defs
+  '((alive . " ")
+    (to-delete . "D")
+    (to-show . "S"))
+  "Enumeration of status for buffers in `config-manager-list-entries'.")
+
+(defun config-manager-insert-at-position (seq elt pos)
+  "Return SEQ with ELT inserted at position POS."
+  (append (cl-subseq seq 0 pos)
+	  (list elt)
+	  (cl-subseq seq pos)))
+
 (defclass config-manager (config-persistent)
-  ((name :initarg :name
-	 :initform "untitled"
-	 :reader config-manager-name
-	 :type string
-	 :documentation "Name of this configuration manager.")
+  (
+   ;; (name :initarg :name
+   ;; 	 :initform "untitled"
+   ;; 	 :reader config-manager-name
+   ;; 	 :type string
+   ;; 	 :documentation "Name of this configuration manager.")
    (cycle-method :initarg :cycle-method
 		 :initform last-visit
 		 :reader config-manager-cycle-method
@@ -275,22 +311,20 @@ List of fields used in output of `buffer-list'.")
 		     :protection :private
 		     :documentation "\
 Keeps track of the last entry for last-visit cycle method."))
+  :method-invocation-order :c3
   :documentation "Manages configurations.")
 
-(defconst config-manager-list-col-space 4
-  "Space between columns.")
+(cl-defmethod initialize-instance ((this config-manager) &optional slots)
+  (setq slots (plist-put slots :pslots
+			 (append (plist-get slots :pslots)
+				 '(object-name entries))))
+  ;; (with-slots (pslots) this
+  ;;   (setq pslots
+  ;; 	  (append pslots '(name entries))))
+  (cl-call-next-method this slots))
 
-(defconst config-manager-status-defs
-  '((alive . " ")
-    (to-delete . "D")
-    (to-show . "S"))
-  "Enumeration of status for buffers in `config-manager-list-entries'.")
-
-(defun config-manager-insert-at-position (seq elt pos)
-  "Return SEQ with ELT inserted at position POS."
-  (append (cl-subseq seq 0 pos)
-	  (list elt)
-	  (cl-subseq seq pos)))
+(cl-defmethod config-manager-name ((this config-manager))
+  (slot-value this 'object-name))
 
 (cl-defmethod config-manager-new-entry ((this config-manager) &optional slots)
   "Create a new nascent entry object.
@@ -382,10 +416,10 @@ of the object's internal state.  Sorting is done based on SORT-FORM's value:
 				     entry))
 			       entries))))
       (when sort-form
-	(cl-flet ((lexical-fn
-		   (a b)
-		   (string< (config-entry-name a) (config-entry-name b))))
-	  (let ((sort-fn (cond ((eq sort-form 'lexical) 'lexical-fn)
+	(let ((lexical-fn
+	       #'(lambda (a b)
+		   (string< (config-entry-name a) (config-entry-name b)))))
+	  (let ((sort-fn (cond ((eq sort-form 'lexical) lexical-fn)
 			       ((functionp sort-form) sort-form)
 			       (t (error "Illegal sort form: %S" sort-form)))))
 	    (setq entries (sort entries sort-fn)))))
@@ -504,7 +538,7 @@ Returns the config entry we switched to based on CRITERIA \(see
   (let ((entry (or (config-manager-entry this criteria)
 		   (apply #'config-manager-new-entry
 			  this (and (stringp criteria)
-				    `(:name ,criteria))))))
+				    `(:object-name ,criteria))))))
     (config-entry-restore entry)
     (config-manager-cycle-entries this entry)
     (config-manage-refresh-windows)
@@ -625,13 +659,6 @@ BUFFER-NAME is the name of the buffer holding the entries for the mode."
       (setq name (read-string prompt nil nil def))
       (if (= 0 (length name)) (setq name nil))
       name)))
-
-(cl-defmethod initialize-instance ((this config-manager) &optional slots)
-  (with-slots (pslots) this
-    (setq pslots
-	  (append pslots '(name entries))))
-  (cl-call-next-method this slots)
-  (config-manager-set-name this))
 
 (defun config-manage-refresh-windows ()
   "Refresh config entries list buffer."
