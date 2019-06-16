@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'eieio)
+(require 'eieio-core)
 (defvar config-manager-instance)
 
 ;;;###autoload
@@ -70,6 +72,27 @@ Pattern match on THIS if it is given and this is a `config-manager-mode'."
 (font-lock-add-keywords 'emacs-lisp-mode
   '(("config-manage-delcare-functions" . font-lock-keyword-face)
     ("config-manage-delcare-variables" . font-lock-keyword-face)))
+
+(defun config-manage-slots (class)
+  "Return an alist of slots for EIEIO CLASS.
+
+This is a helper function and probably shouldn't be trusted to work long term
+since it uses code ripped off from EIEIO guts."
+  (let ((slots (-> (cl--find-class class)
+		   eieio--class-slots)))
+    (mapcar #'(lambda (i)
+		(let* ((sd (aref slots i))
+		       (doc (alist-get :documentation
+				       (cl--slot-descriptor-props sd))))
+		  `(,(cl--slot-descriptor-name sd) .
+		    ((init . ,(cl--slot-descriptor-initform sd))
+		     (documentation . ,doc)
+		     (type . ,(cl--slot-descriptor-type sd))))))
+	    (number-sequence 0 (1- (length slots))))))
+
+(define-error 'config-manage-un-implemented
+  "Un-implemented method config-manage method"
+  'cl-no-applicable-method)
 
 (provide 'config-manage-core)
 

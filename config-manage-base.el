@@ -57,10 +57,22 @@ this error:
   constructors found, but no :type specified for slot displays of type nil")
 
 (cl-defmethod initialize-instance ((this config-persistent) &optional slots)
+  
   (setq slots (plist-put slots :pslots
 			 (append (plist-get slots :pslots)
 				 '(object-name))))
   (cl-call-next-method this slots))
+
+(cl-defmethod config-persistent--unimplemented ((this config-persistent) method)
+  "Signal error CONFIG-MANAGE-UN-IMPLEMENTED for EIEIO METHOD."
+  (with-temp-buffer
+    (set-buffer (get-buffer-create "*config-manage-backtrace*"))
+    (erase-buffer)
+    (let ((standard-output (current-buffer)))
+      (backtrace)))
+  (signal 'config-manage-un-implemented
+	  (list method (with-temp-buffer
+			 (cl-print-object this (current-buffer))))))
 
 (cl-defmethod config-persistent-destruct ((this config-persistent))
   "Deallocate any resources when the instance falls out of use.

@@ -7,7 +7,7 @@
 ;; Maintainer: Paul Landes
 ;; Keywords: interactive buffer management
 ;; URL: https://github.com/plandes/buffer-manage
-;; Package-Requires: ((emacs "25") (choice-program "0.3") (dash "2.13.0"))
+;; Package-Requires: ((emacs "26") (choice-program "0.5") (dash "2.13.0"))
 
 ;; This file is not part of GNU Emacs.
 
