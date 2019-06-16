@@ -391,7 +391,7 @@ See the :prop-entry-doc slot."
   "Create a buffer with the configuration of the prop-entry."
   (with-slots (description) this
     (with-current-buffer
-	(-> (format "*%s Prop-Entry Configuration*" description)
+	(-> (format "*%s Configuration*" description)
 	    get-buffer-create)
       (read-only-mode 0)
       (erase-buffer)
