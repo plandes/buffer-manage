@@ -31,6 +31,7 @@
 
 (require 'eieio)
 (require 'eieio-core)
+
 (defvar config-manager-instance)
 
 ;;;###autoload
@@ -78,8 +79,7 @@ Pattern match on THIS if it is given and this is a `config-manager-mode'."
 
 This is a helper function and probably shouldn't be trusted to work long term
 since it uses code ripped off from EIEIO guts."
-  (let ((slots (-> (cl--find-class class)
-		   eieio--class-slots)))
+  (let ((slots (eieio--class-slots (cl--find-class class))))
     (mapcar #'(lambda (i)
 		(let* ((sd (aref slots i))
 		       (doc (alist-get :documentation

@@ -324,6 +324,7 @@ Keeps track of the last entry for last-visit cycle method."))
   (cl-call-next-method this slots))
 
 (cl-defmethod config-manager-name ((this config-manager))
+  "Return the name of the configuration manager."
   (slot-value this 'object-name))
 
 (cl-defmethod config-manager-new-entry ((this config-manager) &optional slots)
@@ -628,6 +629,30 @@ Returns the config entry we switched to based on CRITERIA \(see
       (setq name (read-string prompt nil nil def))
       (if (= 0 (length name)) (setq name nil))
       name)))
+
+(cl-defmethod config-persistent-doc ((this config-manager) &optional level)
+  "Create markdown documentation on this manager and its entries.
+The buffer is set to `markdown-mode' if library is available."
+  (setq level (or level 2))
+  (let* ((name (capitalize (config-manager-name this)))
+	 (buf (->> (format "*%s Documentation*" name)
+		   get-buffer-create))
+	 (doc (-> (eieio-object-class this)
+		  cl--find-class
+		  cl--class-docstring)))
+    (with-current-buffer buf
+      (read-only-mode 0)
+      (erase-buffer)
+      (insert (format "%s %s\n\n%s\n" (make-string level ?#) name doc))
+      (dolist (compiler (config-manager--entries this nil nil 'lexical))
+	(unless (equal (config-entry-name compiler) "disable")
+	  (config-persistent-doc compiler (1+ level))))
+      (goto-char (point-min))
+      (and (fboundp 'markdown-mode) (markdown-mode))
+      (read-only-mode 1))
+    (display-buffer buf)
+    buf))
+
 
 
 ;;; mode
