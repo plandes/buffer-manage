@@ -25,18 +25,23 @@
 
 ;;; Commentary:
 
+;; This library provides functionality for the configuration entry listing.  It
+;; allows the user to "graphically" add, delete, rename (and other operations)
+;; configuration entries.
+
 ;;; Code:
+
 
 (require 'dash)
 (require 'config-manage-core)
 (require 'config-manage-base)
 
+(defvar config-entry-status)
+
 (config-manage-declare-variables
  config-manager-instance
- config-entry-status
  config-manage-on-mouse-down
  org-window-config)
-
 
 ;;; mode
 (defcustom config-manage-highlight t

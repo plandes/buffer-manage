@@ -1,4 +1,4 @@
-;;; config-manage-core.el --- manage abstract configurations
+;;; config-manage-core.el --- configuration management core
 
 ;; Copyright (C) 2017 - 2019 Paul Landes
 
@@ -25,7 +25,11 @@
 
 ;;; Commentary:
 
+;; This contains core functions for the configuration management system.
+
 ;;; Code:
+
+(defvar config-manager-instance)
 
 ;;;###autoload
 (defmacro config-manage-declare-functions (&rest fns)
@@ -51,8 +55,6 @@ This is used in the compiler module libraries to silence the compiler in
 		 (unless (fboundp sym)
 		   (eval `(defvar ,sym nil))))
 	     (quote ,vars))))
-
-(config-manage-declare-variables config-manager-instance)
 
 (defun config-manage-mode-assert (&optional no-error-p this)
   "Throw an error if not in `config-manage-mode' when NO-ERROR-P is nil.

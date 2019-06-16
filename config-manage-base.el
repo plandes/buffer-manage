@@ -1,4 +1,4 @@
-;;; config-manage-base.el --- manage abstract configurations
+;;; config-manage-base.el --- configuraiton management base classes
 
 ;; Copyright (C) 2017 - 2019 Paul Landes
 
@@ -25,6 +25,9 @@
 
 ;;; Commentary:
 
+;; This library contains the base classes for the configuration management
+;; system.
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -36,8 +39,8 @@
 (require 'choice-program)
 (require 'config-manage-core)
 
-;(config-manage-declare-functions config-manage-mode-refresh)
-(config-manage-declare-variables config-entry-status)
+(config-manage-declare-variables config-manager-instance)
+(defvar config-entry-status)
 
 (defclass config-persistent (eieio-named)
   ((pslots :initarg :pslots
@@ -196,13 +199,7 @@ This implementation sets all slots to nil."
 
 ;;; config objects
 (defclass config-entry (config-persistent)
-  (
-   ;; (name :initarg :name
-   ;; 	 :initform nil
-   ;; 	 :type (or null string)
-   ;; 	 :reader config-entry-name
-   ;; 	 :protection :protected)
-   (description :initarg :description
+  ((description :initarg :description
 		:initform "<none>"
 		:reader config-entry-description
 		:type string
@@ -215,11 +212,6 @@ The description of this entry, used in `config-manager-list-entries-buffer'.")
   :method-invocation-order :c3
   :documentation "Abstract class for all configurable entries.")
 
-;; (cl-defmethod initialize-instance ((this config-entry) &optional args)
-;;   (let ((name (plist-get args :name)))
-;;     (and name (setq args (plist-put args :object-name name))))
-;;   (cl-call-next-method this args))
-
 (cl-defmethod config-entry-name ((this config-entry))
   (slot-value this 'object-name))
 
@@ -229,10 +221,7 @@ The description of this entry, used in `config-manager-list-entries-buffer'.")
 NAME's is stripped of properties since it might be fontified when
 generated the buffer in `config-manage-mode'."
   (let ((name (substring-no-properties name)))
-    (setf (slot-value this 'object-name) name)
-    ;; (setf (slot-value this 'name) name
-    ;; 	  (slot-value this 'object-name) name)
-    ))
+    (setf (slot-value this 'object-name) name)))
 
 (cl-defmethod config-entry-save ((this config-entry))
   "Save the current entry configuration."
@@ -262,13 +251,7 @@ generated the buffer in `config-manage-mode'."
 	  (cl-subseq seq pos)))
 
 (defclass config-manager (config-persistent)
-  (
-   ;; (name :initarg :name
-   ;; 	 :initform "untitled"
-   ;; 	 :reader config-manager-name
-   ;; 	 :type string
-   ;; 	 :documentation "Name of this configuration manager.")
-   (cycle-method :initarg :cycle-method
+  ((cycle-method :initarg :cycle-method
 		 :initform last-visit
 		 :reader config-manager-cycle-method
 		 :writer config-manager-set-cycle-method
@@ -304,9 +287,6 @@ Keeps track of the last entry for last-visit cycle method."))
   (setq slots (plist-put slots :pslots
 			 (append (plist-get slots :pslots)
 				 '(object-name entries))))
-  ;; (with-slots (pslots) this
-  ;;   (setq pslots
-  ;; 	  (append pslots '(name entries))))
   (cl-call-next-method this slots))
 
 (cl-defmethod config-manager-name ((this config-manager))

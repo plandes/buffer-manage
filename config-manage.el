@@ -36,24 +36,9 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-(require 'seq)
-(require 'time-stamp)
-(require 'dash)
-(require 'eieio)
-(require 'eieio-base)
-(require 'choice-program)
 (require 'config-manage-core)
 (require 'config-manage-base)
 (require 'config-manage-mode)
-
-;; (config-manage-declare-variables
-;;  config-entry-status
-;;  config-manager-instance
-;;  config-manage-mode-map
-;;  config-manage-mode-menu-definition
-;;  config-manage-on-mouse-down
-;;  org-window-config)
 
 (provide 'config-manage)
 
