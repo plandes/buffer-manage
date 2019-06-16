@@ -103,7 +103,7 @@ The default reads a string using `config-prop-default' and
   "Raise an error if user input VAL is not not valid data."
   nil)
 
-(cl-defmethod config-prop-clear ((this config-prop))
+(cl-defmethod config-persistent-reset ((this config-prop))
   "Clear any state \(i.e. history) from the property."
   (with-slots (history) this
     (setq (symbol-value history) nil)))
@@ -178,7 +178,8 @@ This is always used for `completion-ignore-case'."))
 	(let ((default (config-prop-default-input this))
 	      (prompt (config-prop-prompt this))
 	      (completion-ignore-case ignore-case))
-	  (choice-program-complete prompt choices nil t nil history default))))))
+	  (choice-program-complete prompt choices
+				   nil t nil history default))))))
 
 
 (defclass config-choice-description-prop (config-choice-prop)
@@ -368,12 +369,12 @@ with \\[universal-argument]."
 	(setq val (config-prop-read prop))
 	(config-prop-set-prop this prop val)))))
 
-(cl-defmethod config-prop-clear ((this config-prop-entry))
+(cl-defmethod config-persistent-reset ((this config-prop-entry))
   "Wipe all values for the prop-entry."
   (dolist (prop (config-prop-by-order this))
     (config-prop-set-prop this prop nil))
   (dolist (prop (config-prop-by-order this))
-    (config-prop-clear prop))
+    (config-persistent-reset prop))
   (message "Cleared %s configuration" (config-entry-name this)))
 
 (cl-defmethod config-persistent-doc ((this config-prop-entry) level)
@@ -389,8 +390,9 @@ See the :prop-entry-doc slot."
 (cl-defmethod config-prop-entry-show-configuration ((this config-prop-entry))
   "Create a buffer with the configuration of the prop-entry."
   (with-slots (description) this
-    (with-current-buffer (-> (format "*%s Prop-Entry Configuration*" description)
-			     get-buffer-create)
+    (with-current-buffer
+	(-> (format "*%s Prop-Entry Configuration*" description)
+	    get-buffer-create)
       (read-only-mode 0)
       (erase-buffer)
       (insert (format "%s configuration:\n" description))
