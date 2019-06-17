@@ -658,15 +658,14 @@ The buffer is set to `markdown-mode' if library is available."
   "Refresh the entry listing buffer."
   (interactive)
   (config-manage-mode-assert)
-  (let ((line (count-lines (point-min) (point))))
+  (let ((line (count-lines (point-min) (point)))
+	(pos (point)))
     (setq buffer-read-only nil)
     (erase-buffer)
     (config-manager-list-entries config-manager-instance)
     (setq buffer-read-only t)
     (goto-char (point-min))
-    (forward-line line)
-    (beginning-of-line)
-    (set-window-point (get-buffer-window (current-buffer)) (point))))
+    (forward-line line)))
 
 (defun config-manage-refresh-windows ()
   "Refresh config entries list buffer."
@@ -676,7 +675,6 @@ The buffer is set to `markdown-mode' if library is available."
 		 (with-current-buffer buf
 		   (if (config-manage-mode-assert t)
 		       (config-manage-mode-refresh))))))))
-(add-hook 'buffer-list-update-hook #'config-manage-refresh-windows)
 
 (provide 'config-manage-base)
 

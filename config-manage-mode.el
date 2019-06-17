@@ -154,8 +154,12 @@ EVENT mouse event data."
   (config-manage-mode-assert)
   (setq name (or name (config-manage-mode-name-at-point)))
   (let ((this config-manager-instance))
-    (config-manage-mode-assert)
-    (config-manager-activate this name nil 'split)))
+    (when (child-of-class-p (eieio-object-class this)
+			    'buffer-manager)
+      (config-manage-mode-assert)
+      (let ((win (selected-window)))
+	(buffer-manager-switch this name nil 'split)
+	(select-window win)))))
 
 (defun config-manage-mode-set-status (status)
   "Set the mode status to STATUS for the mode."
@@ -290,7 +294,6 @@ BUFFER-NAME is the name of the buffer holding the entries for the mode."
 	(erase-buffer)
 	(config-manage-mode)
 	(config-manager-list-entries this)
-	(set-window-point (get-buffer-window (current-buffer)) (point))
 	(set (make-local-variable 'config-manager-instance) this)
 	(set-buffer-modified-p nil)
 	(setq buffer-read-only t)
