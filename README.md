@@ -28,6 +28,8 @@ The library includes support for:
 - [Fast Switching](#fast-switching)
 - [Key Bindings](#key-bindings-1)
 - [Extending Libraries](#extending-libraries)
+- [Implementations](#implementations)
+- [Changelog](#changelog)
 - [License](#license)
 
 <!-- markdown-toc end -->
