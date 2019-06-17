@@ -411,6 +411,23 @@ See the :prop-entry-doc slot."
       (dolist (prop props)
 	(config-persistent-doc prop (1+ level))))))
 
+(cl-defmethod config-prop-entry-info ((this config-prop-entry))
+  "Create and display a buffer with the `prop-entry' documentation and config."
+  (with-current-buffer (->> (config-entry-name this)
+			    capitalize
+			    (format "%s Info")
+			    get-buffer-create)
+    (read-only-mode 0)
+    (erase-buffer)
+    (config-persistent-doc this 1)
+    (when (child-of-class-p (eieio-object-class this)
+			    'config-prop-entry)
+      (insert "\n")
+      (config-prop-entry-write-configuration this 1 "Configuration:")
+      (and (fboundp 'markdown-mode) (markdown-mode)))
+    (read-only-mode 1)
+    (display-buffer (current-buffer))))
+
 (cl-defmethod config-prop-entry-write-configuration ((this config-prop-entry)
 						     &optional level header)
   (setq level (or level 0))

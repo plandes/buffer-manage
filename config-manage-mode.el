@@ -166,19 +166,19 @@ EVENT mouse event data."
   (config-manage-mode-assert)
   (setq name (or name (config-manage-mode-name-at-point)))
   (let* ((this config-manager-instance)
-	 (entry (config-manager-entry this name))
-	 (name (capitalize (config-entry-name entry)))
-	 (buf (->> (format "%s Info" name)
-		   get-buffer-create)))
-    (with-current-buffer buf
-      (erase-buffer)
-      (config-persistent-doc entry 1)
-      (when (child-of-class-p (eieio-object-class entry)
-			      'config-prop-entry)
-	(insert "\n")
-	(config-prop-entry-write-configuration entry 1 "Configuration:")
-	(and (fboundp 'markdown-mode) (markdown-mode)))
-      (display-buffer (current-buffer)))))
+	 (entry (config-manager-entry this name)))
+    (config-prop-entry-info entry)))
+
+(defun config-manage-mode-edit (&optional name)
+  "Edit the entry with NAME."
+  (interactive)
+  (config-manage-mode-assert)
+  (setq name (or name (config-manage-mode-name-at-point)))
+  (let* ((this config-manager-instance)
+	 (entry (config-manager-entry this name)))
+    (when (child-of-class-p (eieio-object-class entry)
+			    'config-prop-entry)
+      (config-prop-entry-configure entry nil))))
 
 (defun config-manage-mode-set-status (status)
   "Set the mode status to STATUS for the mode."
@@ -275,6 +275,7 @@ Special commands:
 (define-key config-manage-mode-map "r" 'config-manage-mode-rename)
 (define-key config-manage-mode-map "v" 'config-manage-mode-view)
 (define-key config-manage-mode-map "?" 'config-manage-mode-info)
+(define-key config-manage-mode-map "e" 'config-manage-mode-edit)
 
 (defvar config-manage-mode-menu-definition
   (list "Config Manage"
