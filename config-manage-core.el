@@ -48,6 +48,19 @@ This is used in the compiler module libraries to silence the compiler in
 	     (quote ,fns))))
 
 ;;;###autoload
+(defmacro config-manage-declare-methods (&rest fns)
+  "Declare methods in list FNS for the purposes of silencing the compiler.
+
+This is used in the compiler module libraries to silence the compiler in
+`eval-when-compile' scopes."
+  `(eval-when-compile
+     (mapcar #'(lambda (sym)
+		 (unless (fboundp sym)
+		   (eval `(cl-defgeneric ,sym (&rest x)
+			    (error "Bad declare order")))))
+	     (quote ,fns))))
+
+;;;###autoload
 (defmacro config-manage-declare-variables (&rest vars)
   "Declare variables in list VARS for the purposes of silencing the compiler.
 
@@ -71,8 +84,9 @@ Pattern match on THIS if it is given and this is a `config-manager-mode'."
       matchp)))
 
 (font-lock-add-keywords 'emacs-lisp-mode
-  '(("config-manage-delcare-functions" . font-lock-keyword-face)
-    ("config-manage-delcare-variables" . font-lock-keyword-face)))
+  '(("config-manage-declare-functions" . font-lock-keyword-face)
+    ("config-manage-declare-methods" . font-lock-keyword-face)
+    ("config-manage-declare-variables" . font-lock-keyword-face)))
 
 (defun config-manage-slots (class)
   "Return an alist of slots for EIEIO CLASS.

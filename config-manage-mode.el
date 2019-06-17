@@ -35,6 +35,7 @@
 (require 'dash)
 (require 'config-manage-core)
 (require 'config-manage-base)
+(require 'config-manage-prop)
 
 (defvar config-entry-status)
 
@@ -43,8 +44,7 @@
  config-manage-on-mouse-down
  org-window-config)
 
-(config-manage-declare-functions
- buffer-manager-switch)
+(config-manage-declare-methods buffer-manager-switch)
 
 ;;; mode
 (defcustom config-manage-highlight t
