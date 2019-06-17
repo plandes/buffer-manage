@@ -156,10 +156,28 @@ EVENT mouse event data."
   (let ((this config-manager-instance))
     (when (child-of-class-p (eieio-object-class this)
 			    'buffer-manager)
-      (config-manage-mode-assert)
       (let ((win (selected-window)))
 	(buffer-manager-switch this name nil 'split)
 	(select-window win)))))
+
+(defun config-manage-mode-info (&optional name)
+  "Display information about the entry NAME in a separate buffer."
+  (interactive)
+  (config-manage-mode-assert)
+  (setq name (or name (config-manage-mode-name-at-point)))
+  (let* ((this config-manager-instance)
+	 (entry (config-manager-entry this name))
+	 (name (capitalize (config-entry-name entry)))
+	 (buf (->> (format "%s Info" name)
+		   get-buffer-create)))
+    (with-current-buffer buf
+      (erase-buffer)
+      (config-persistent-doc entry 0)
+      (when (child-of-class-p (eieio-object-class entry)
+			      'config-prop-entry)
+	(insert "\n")
+	(config-prop-entry-write-configuration entry 1 "Configuration:"))
+      (display-buffer (current-buffer)))))
 
 (defun config-manage-mode-set-status (status)
   "Set the mode status to STATUS for the mode."
@@ -255,6 +273,7 @@ Special commands:
 (define-key config-manage-mode-map "g" 'config-manage-mode-refresh)
 (define-key config-manage-mode-map "r" 'config-manage-mode-rename)
 (define-key config-manage-mode-map "v" 'config-manage-mode-view)
+(define-key config-manage-mode-map "?" 'config-manage-mode-info)
 
 (defvar config-manage-mode-menu-definition
   (list "Config Manage"

@@ -260,9 +260,10 @@ generated the buffer in `config-manage-mode'."
 		      (goto-char (point-min))
 		      (while (search-forward-regexp "`\\(.+?\\)'" nil t)
 			(replace-match "`\\1`"))
-		      (buffer-string)))
-	      (insert (format "\n\n%s %s\n\n%s\n" (make-string level ?#)
-			      description doc)))))))
+		      (buffer-string)))))
+      (when (> level 0)
+	(insert (format "\n\n%s " (make-string level ?#))))
+      (insert (format "%s\n\n%s\n" description doc)))))
 
 
 ;; config manager
@@ -642,9 +643,8 @@ The buffer is set to `markdown-mode' if library is available."
       (read-only-mode 0)
       (erase-buffer)
       (insert (format "%s %s\n\n%s\n" (make-string level ?#) name doc))
-      (dolist (compiler (config-manager--entries this nil nil 'lexical))
-	(unless (equal (config-entry-name compiler) "disable")
-	  (config-persistent-doc compiler (1+ level))))
+      (dolist (entry (config-manager--entries this nil nil 'lexical))
+	(config-persistent-doc entry (1+ level)))
       (goto-char (point-min))
       (and (fboundp 'markdown-mode) (markdown-mode))
       (read-only-mode 1))

@@ -411,6 +411,20 @@ See the :prop-entry-doc slot."
       (dolist (prop props)
 	(config-persistent-doc prop (1+ level))))))
 
+(cl-defmethod config-prop-entry-write-configuration ((this config-prop-entry)
+						     &optional level header)
+  (setq level (or level 0))
+  (with-slots (description) this
+    (insert (or header (format "%s configuration:" description)))
+    (newline)
+    (dolist (prop (config-prop-by-order this))
+      (let* ((name (config-prop-name prop))
+	     (val (or (slot-value this name) "<not set>"))
+	     (space (make-string (* 2 level) ? )))
+	(if (> level 0)
+	    (setq space (concat space "* ")))
+	(insert (format "%s%S: %s\n" space name val))))))
+
 (cl-defmethod config-prop-entry-show-configuration ((this config-prop-entry))
   "Create a buffer with the configuration of the prop-entry."
   (with-slots (description) this
@@ -419,11 +433,7 @@ See the :prop-entry-doc slot."
 	    get-buffer-create)
       (read-only-mode 0)
       (erase-buffer)
-      (insert (format "%s configuration:\n" description))
-      (dolist (prop (config-prop-by-order this))
-	(let* ((name (config-prop-name prop))
-	       (val (or (slot-value this name) "<not set>")))
-	  (insert (format "%S: %s\n" name val))))
+      (config-prop-entry-write-configuration this)
       (read-only-mode 1)
       (display-buffer (current-buffer))
       (current-buffer))))
