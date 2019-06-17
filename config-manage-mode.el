@@ -172,7 +172,7 @@ EVENT mouse event data."
 		   get-buffer-create)))
     (with-current-buffer buf
       (erase-buffer)
-      (config-persistent-doc entry 0)
+      (config-persistent-doc entry 1)
       (when (child-of-class-p (eieio-object-class entry)
 			      'config-prop-entry)
 	(insert "\n")

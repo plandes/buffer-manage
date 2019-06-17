@@ -261,8 +261,10 @@ generated the buffer in `config-manage-mode'."
 		      (while (search-forward-regexp "`\\(.+?\\)'" nil t)
 			(replace-match "`\\1`"))
 		      (buffer-string)))))
-      (when (> level 0)
-	(insert (format "\n\n%s " (make-string level ?#))))
+      (if (> level 1)
+	  (insert "\n\n"))
+      (if (> level 0)
+	  (insert (format "%s " (make-string level ?#))))
       (insert (format "%s\n\n%s\n" description doc)))))
 
 
