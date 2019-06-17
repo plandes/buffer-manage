@@ -73,24 +73,25 @@ directory.
 
 The [entries mode] buffer allows for mouse editing and also the following keys:
 
-|Key               |Function                            |Description
-|-----------------:|------------------------------------|-----------------------------------------------------------
-|`d`               |config-manage-mode-mark-delete      |Delete a buffer (terminate).                              |
-|`G`               |config-manage-mode-refresh          |Refresh the buffer entry listing buffer.                  |
-|`i`               |config-manage-mode-new              |Create a new entry.                                       |
-|`n`               |config-manage-mode-next             |Called by pressing the `tab` key in `config-manage-mode`. |
-|`p`               |config-manage-mode-previous         |Called by pressing the `tab` key in `config-manage-mode`. |
-|`q`               |config-manage-mode-quit             |Quit from within the `config-manage-mode`.                |
-|`r`               |config-manage-mode-rename           |Rename a buffer to NEW-NAME.                              |
-|`s`               |config-manage-mode-mark-show        |Display (show) a buffer.                                  |
-|`u`               |config-manage-mode-mark-undelete    |Unmark a buffer for deletion.                             |
-|`v`               |config-manage-mode-view             |Activates the buffer entry with name NAME.                |
-|`x`               |config-manage-mode-delete-selected  |Delete all entries that are selected for delete.          |
-|`<C-down>`        |config-manage-mode-next             |Called by pressing the `tab` key in `config-manage-mode`. |
-|`<C-up>`          |config-manage-mode-previous         |Called by pressing the `tab` key in `config-manage-mode`. |
-|`<down-mouse-2>`  |config-manage-mode-mouse-down       |Call back for mouse down events.                          |
-|`<mouse-2>`       |config-manage-mode-mouse-up         |Call back for mouse down events.                          |
-|`<return>`        |config-manage-mode-activate-buffer  |Activates the buffer entry with name NAME.                |
+|              Key | Function                           | Description                                               |
+|-----------------:|------------------------------------|-----------------------------------------------------------|
+|              `d` | config-manage-mode-mark-delete     | Delete a buffer (terminate).                              |
+|              `G` | config-manage-mode-refresh         | Refresh the buffer entry listing buffer.                  |
+|              `i` | config-manage-mode-new             | Create a new entry.                                       |
+|              `n` | config-manage-mode-next            | Called by pressing the `tab` key in `config-manage-mode`. |
+|              `p` | config-manage-mode-previous        | Called by pressing the `tab` key in `config-manage-mode`. |
+|              `q` | config-manage-mode-quit            | Quit from within the `config-manage-mode`.                |
+|              `r` | config-manage-mode-rename          | Rename a buffer to NEW-NAME.                              |
+|              `s` | config-manage-mode-mark-show       | Display (show) a buffer.                                  |
+|              `u` | config-manage-mode-mark-undelete   | Unmark a buffer for deletion.                             |
+|              `v` | config-manage-mode-view            | Activates the buffer entry with name NAME.                |
+|              `x` | config-manage-mode-delete-selected | Delete all entries that are selected for delete.          |
+|              `?` | config-manage-mode-info            | Get information on the configuration entry.               |
+|       `<C-down>` | config-manage-mode-next            | Called by pressing the `tab` key in `config-manage-mode`. |
+|         `<C-up>` | config-manage-mode-previous        | Called by pressing the `tab` key in `config-manage-mode`. |
+| `<down-mouse-2>` | config-manage-mode-mouse-down      | Call back for mouse down events.                          |
+|      `<mouse-2>` | config-manage-mode-mouse-up        | Call back for mouse down events.                          |
+|       `<return>` | config-manage-mode-activate-buffer | Activates the buffer entry with name NAME.                |
 
 
 ## Fast Switching
@@ -125,6 +126,16 @@ However, if you need just a simple persistence or configuration management
 (without buffer management support) you can `require` the `config-manage.el`
 library instead.  See for [frame customize] project as an example of how to
 extend the *configuration manager*.
+
+
+## Implementations
+
+Implementations that use this library include (please let me know of your own):
+
+* The [flexible configuration](https://github.com/plandes/flex-compile) library
+  config-manage-mode-info.
+* Multiple [buffer shell] library.
+* The Emacs SQL [ciSQL](https://github.com/plandes/cisql) library.
 
 
 ## Changelog
