@@ -43,6 +43,9 @@
  config-manage-on-mouse-down
  org-window-config)
 
+(config-manage-declare-functions
+ buffer-manager-switch)
+
 ;;; mode
 (defcustom config-manage-highlight t
   "Whether or not to hightlight buffer using `config-manager-list-entries-buffer'."
