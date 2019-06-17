@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - New property based configuration for the `config-manage` library that allows
   for quick but robust minibuffer configuration of configuration entries.
+- More `config-manage-mode` options for more versile extensions like
+  `flex-comple`.
 
 ### Changed
 - Compat with recent EIEIO with better Emacs OO and CLOS symantics.
