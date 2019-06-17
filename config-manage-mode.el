@@ -176,7 +176,8 @@ EVENT mouse event data."
       (when (child-of-class-p (eieio-object-class entry)
 			      'config-prop-entry)
 	(insert "\n")
-	(config-prop-entry-write-configuration entry 1 "Configuration:"))
+	(config-prop-entry-write-configuration entry 1 "Configuration:")
+	(and (fboundp 'markdown-mode) (markdown-mode)))
       (display-buffer (current-buffer)))))
 
 (defun config-manage-mode-set-status (status)

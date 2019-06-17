@@ -419,7 +419,7 @@ See the :prop-entry-doc slot."
     (newline)
     (dolist (prop (config-prop-by-order this))
       (let* ((name (config-prop-name prop))
-	     (val (or (slot-value this name) "<not set>"))
+	     (val (or (slot-value this name) "*not set*"))
 	     (space (make-string (* 2 level) ? )))
 	(if (> level 0)
 	    (setq space (concat space "* ")))
