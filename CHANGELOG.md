@@ -58,7 +58,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 First major release.
 
 
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.8...HEAD
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.9...HEAD
+[0.9]: https://github.com/plandes/buffer-manage/compare/v0.8...v0.9
 [0.8]: https://github.com/plandes/buffer-manage/compare/v0.7...v0.8
 [0.7]: https://github.com/plandes/buffer-manage/compare/v0.6...v0.7
 [0.6]: https://github.com/plandes/buffer-manage/compare/v0.5...v0.6
