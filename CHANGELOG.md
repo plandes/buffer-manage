@@ -1,4 +1,5 @@
 # Change Log
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
@@ -6,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 ## [Unreleased]
+
+## [0.11] - 2019-06-20
+### Added
+- Additional proeprty types.
+### Changed
+- Bug fixes to slot persistence.
 
 
 ## [0.9] - 2019-06-15
@@ -58,7 +65,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 First major release.
 
 
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.9...HEAD
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.11...HEAD
+[0.11]: https://github.com/plandes/buffer-manage/compare/v0.10...v0.11
+[0.10]: https://github.com/plandes/buffer-manage/compare/v0.9...v0.10
 [0.9]: https://github.com/plandes/buffer-manage/compare/v0.8...v0.9
 [0.8]: https://github.com/plandes/buffer-manage/compare/v0.7...v0.8
 [0.7]: https://github.com/plandes/buffer-manage/compare/v0.6...v0.7

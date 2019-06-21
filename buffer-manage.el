@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015 - 2019 Paul Landes
 
-;; Version: 0.9
+;; Version: 0.10
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: interactive buffer management

@@ -154,6 +154,53 @@ The default reads a string using `config-prop-default' and
 
 
 ;; properties
+(defclass config-boolean-prop (config-prop)
+  ()
+  :method-invocation-order :c3
+  :documentation "A boolean property that offers quick selection.")
+
+(cl-defmethod config-prop-read ((this config-boolean-prop))
+  (let ((prompt (format (slot-value this 'prompt) "? ")))
+    (y-or-n-p prompt)))
+
+
+(defclass config-number-prop (config-prop)
+  ((number-type :initarg :number-type
+		:initform 'integer
+		:type symbol
+		:documentation "\
+The Lisp data type to expect, which is either symbols 'float or 'integer."))
+  :method-invocation-order :c3
+  :documentation "A numeric \(int or float) property.")
+
+(cl-defmethod config-prop-read ((this config-number-prop))
+  (with-slots (history) this
+    (let* ((default (config-prop-default-input this))
+	   (prompt (config-prop-prompt this)))
+      (read-number prompt default))))
+
+(cl-defmethod config-prop-validate ((this config-number-prop) val)
+  (with-slots (number-type) this
+    (let ((given-type (type-of val)))
+      (if (not (eq number-type given-type))
+	  (error "Expecting a %S type but got %S" number-type given-type)))))
+
+
+(defclass config-buffer-prop (config-prop)
+  ()
+  :method-invocation-order :c3
+  :documentation "An Emacs buffer property.")
+
+(cl-defmethod config-prop-read ((this config-buffer-prop))
+  (with-slots (history) this
+    (let* ((default (config-prop-default-input this))
+	   (prompt (config-prop-prompt this))
+	   (val (read-buffer prompt (list (current-buffer) default) t)))
+      (setq val (get-buffer val))
+      (add-to-list history val)
+      val)))
+
+
 (defclass config-choice-prop (config-prop)
   ((choices :initarg :choices
 	    :initform nil
@@ -216,12 +263,6 @@ This is always used for `completion-ignore-case'."))
 The major mode to use to validate/select `config-file` buffers."))
   :method-invocation-order :c3
   :documentation "Property that prompts for a file.")
-
-(cl-defmethod initialize-instance ((this config-file-prop) &optional slots)
-  (dolist (elt (list :validate-modes))
-    (unless (plist-get slots elt)
-      (error "Missing initarg: %S" elt)))
-  (cl-call-next-method this slots))
 
 (cl-defmethod config-prop-default-input ((this config-file-prop))
   nil)
@@ -287,24 +328,30 @@ since this class sets :pslots in the `config-persistent' subclass.")
 
 (cl-defmethod initialize-instance ((this config-prop-entry) &optional slots)
   (let* ((props (plist-get slots :props))
-	 (choices (->> props
-		       (-map #'(lambda (prop)
-				 (config-prop-name prop)))))
-	 (pslots (->> props
-		      (cl-remove-if #'(lambda (prop)
-					(slot-value prop 'transient)))
-		      (-map #'(lambda (prop)
-				 (config-prop-name prop))))))
+	 (pslots (-map #'(lambda (prop)
+			   (config-prop-name prop))
+		       props)))
     (setq slots (plist-put slots :last-selection
 			   (config-choice-prop :object-name 'last-selection
 					       :prompt "Property"
 					       :prop-entry this
-					       :choices choices
+					       :choices pslots
 					       :input-type 'last))
 	  slots (plist-put slots
 			   :pslots (append (plist-get slots :pslots) pslots))
 	  slots (plist-put slots :props props)))
   (cl-call-next-method this slots))
+
+(cl-defmethod config-persistent-persist-slots ((this config-prop-entry))
+  (with-slots (pslots) this
+    (->> pslots
+	 (cl-remove-if #'(lambda (slot-name)
+			   (let ((prop (config-prop-by-name this slot-name)))
+			     (and prop (slot-value prop 'transient)))))
+	 (-map (lambda (slot)
+		 (let ((val (->> (slot-value this slot)
+				 (config-persistent-persist-value this))))
+		   (cons slot val)))))))
 
 (cl-defmethod object-print ((this config-prop-entry) &rest strings)
   (apply #'cl-call-next-method this
