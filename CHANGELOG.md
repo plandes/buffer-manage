@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [0.11] - 2019-06-20
+
+## [0.10] - 2019-06-20
 ### Added
 - Additional proeprty types.
 ### Changed
@@ -65,8 +66,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 First major release.
 
 
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.11...HEAD
-[0.11]: https://github.com/plandes/buffer-manage/compare/v0.10...v0.11
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.10...HEAD
 [0.10]: https://github.com/plandes/buffer-manage/compare/v0.9...v0.10
 [0.9]: https://github.com/plandes/buffer-manage/compare/v0.8...v0.9
 [0.8]: https://github.com/plandes/buffer-manage/compare/v0.7...v0.8
