@@ -193,12 +193,21 @@ The Lisp data type to expect, which is either symbols 'float or 'integer."))
 
 (cl-defmethod config-prop-read ((this config-buffer-prop))
   (with-slots (history) this
+    ;; rid killed buffers from history
+    (setf (symbol-value history)
+	  (-filter #'(lambda (buf)
+		       (buffer-live-p buf))
+		   (symbol-value history)))
     (let* ((default (config-prop-default-input this))
 	   (prompt (config-prop-prompt this))
 	   (val (read-buffer prompt (list (current-buffer) default) t)))
       (setq val (get-buffer val))
       (add-to-list history val)
       val)))
+
+(cl-defmethod config-prop-validate ((this config-buffer-prop) val)
+  (if (not (get-buffer-process val))
+      (error "Buffer %S has no process" val)))
 
 
 (defclass config-choice-prop (config-prop)
