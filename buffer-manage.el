@@ -195,7 +195,6 @@ time."
 	(error "Buffer isn't valid"))
     live-p))
 
-
 
 (defclass buffer-manager (config-manager)
   ((start-dir :initarg :start-dir
@@ -437,12 +436,14 @@ MANAGER the `buffer-manager' singleton instance."
     (config-manager-cycle-entries this entry)))
 
 (cl-defmethod buffer-entry-insert ((this buffer-entry) command
-				   &optional send-command-p)
+				   &optional send-command-p
+				   no-window-set-point-p)
   "Add COMMAND to the buffer prompt.
 If the buffer doesn't have the point at the prompt, then create an error.
 
 SEND-COMMAND-P, if non-nil, actually execute the command inserted as if the
-user hit ENTER."
+user hit ENTER.
+NO-WINDOW-SET-POINT-P, if non-nil don't reset the window point."
   (let ((buf (buffer-entry-buffer this)))
     (save-match-data
       (with-current-buffer buf
@@ -451,7 +452,8 @@ user hit ENTER."
 	(if (and (fboundp 'comint-send-input) send-command-p)
 	    (comint-send-input))
 	(goto-char (point-max))
-	(set-window-point (get-buffer-window (current-buffer)) (point-max))))))
+	(unless no-window-set-point-p
+	  (set-window-point (get-buffer-window buf) (point-max)))))))
 
 (cl-defmethod config-manager-activate ((this buffer-manager) criteria)
   (cl-call-next-method this criteria)
