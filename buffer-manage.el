@@ -298,7 +298,8 @@ ASSERTP, if non-nil, raise an error if there is no current entry."
     (if (and (boundp 'buffer-entry-instance)
 	     (member buffer-entry-instance entries))
 	buffer-entry-instance
-      (if assertp (error "Missing buffer entry or wrong buffer")))))
+      (when assertp
+	(error "Missing buffer entry or wrong buffer")))))
 
 (cl-defmethod config-manager-entry-cycle ((this buffer-manager))
   "Override to provide better support for buffers across multi-window frames."
@@ -410,11 +411,12 @@ MANAGER the `buffer-manager' singleton instance."
   "Return `buffer-entry' instances contained in windows for this frame."
   (config-manager--entries this
 			  (lambda (entry)
-			    (dolist (win (window-list))
-			      (with-current-buffer (window-buffer win)
-				(if (and (boundp 'buffer-entry-instance)
-					 (eq buffer-entry-instance entry))
-				    (cl-return t)))))
+			    (cl-block inc-fn
+			     (dolist (win (window-list))
+			       (with-current-buffer (window-buffer win)
+				 (if (and (boundp 'buffer-entry-instance)
+					  (eq buffer-entry-instance entry))
+				     (cl-return-from inc-fn t))))))
 			  exclude-fn))
 
 (defvar buffer-manage-current-buffer (current-buffer))
