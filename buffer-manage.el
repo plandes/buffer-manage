@@ -121,6 +121,7 @@ process dies.")
   :documentation "Abstract class for all buffer entry like objects.")
 
 (cl-defmethod initialize-instance ((this buffer-entry) &optional slots)
+  "Initialize THIS with SLOTS data."
   (cl-call-next-method this slots)
   (let ((win-cfg (current-window-configuration))
 	name (config-entry-name this)
@@ -142,7 +143,7 @@ process dies.")
 	(set-window-configuration win-cfg)))))
 
 (cl-defmethod config-persistent-destruct ((this buffer-entry))
-  "Dispose a `buffer-entry' instance by killing it's process.
+  "Dispose a `buffer-entry' instance by killing THIS's process.
 Don't use this instance after this method is called.  Instead, don't reference
 it and let the garbage collector get it."
   (when (buffer-entry-live-p this)
@@ -158,7 +159,7 @@ it and let the garbage collector get it."
   (append (cl-call-next-method) '(:buffer :kill-frame-p)))
 
 (cl-defmethod config-entry-description ((this buffer-entry))
-  "Get the description of the configuration entry."
+  "Get the description of THIS configuration entry."
   (with-slots (buffer) this
     (with-current-buffer buffer
       (if (string-match abbreviated-home-dir default-directory)
@@ -169,7 +170,7 @@ it and let the garbage collector get it."
 	default-directory))))
 
 (cl-defmethod config-entry-set-name ((this buffer-entry) name)
-  "Rename the buffer entry to NAME and return the new entry.
+  "Rename the buffer entry to NAME for THIS and return the new entry.
 Note that NAME is not buffer name syntax, it is the name of the
 entry."
   (buffer-entry-live-p this t)
@@ -178,14 +179,15 @@ entry."
     (rename-buffer name t)))
 
 (cl-defmethod buffer-entry-create-buffer ((this buffer-entry))
-  "Create the buffer for this entry.
+  "Create the buffer for THIS entry.
 This is a factory method that is called once by the constructor of the object."
   (error "Must override `buffer-entry-create-buffer' for class `%S'"
 	 (eieio-object-class this)))
 
 (cl-defmethod buffer-entry-live-p ((this buffer-entry) &optional error-p)
-  "Return non-nil if this entry is still active, otherwise it is useless and
-the garbage collector should clean this instance up.
+  "Return non-nil if THIS entry is still active.
+Otherwise it is useless and the garbage collector should clean
+this instance up.
 
 If ERROR-P is non-nil, raise an error stating that the buffer is no longer
 valid.  This is useful for doing a check and getting the buffer at the same
