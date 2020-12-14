@@ -121,7 +121,7 @@ process dies.")
   :documentation "Abstract class for all buffer entry like objects.")
 
 (cl-defmethod initialize-instance ((this buffer-entry) &optional slots)
-  "Initialize THIS with SLOTS data."
+  "Initialize THIS instance using SLOTS as initial values."
   (cl-call-next-method this slots)
   (let ((win-cfg (current-window-configuration))
 	name (config-entry-name this)

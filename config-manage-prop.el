@@ -68,6 +68,7 @@ Whether or not the property is needed for compilation, run, or clean")
 The meta data property of a `config-prop-entry', which persists as a slot.")
 
 (cl-defmethod initialize-instance ((this config-prop) &optional slots)
+  "Initialize THIS instance using SLOTS as initial values."
   (dolist (elt (list :object-name :prop-entry :prompt))
     (unless (plist-get slots elt)
       (error "Missing initarg: %S in %s" elt this)))
@@ -75,7 +76,8 @@ The meta data property of a `config-prop-entry', which persists as a slot.")
   (set (slot-value this 'history) nil))
 
 (cl-defmethod config-prop-name ((this config-prop))
-  "Return the name of the property."
+  "Return the name of the property.
+THIS is the instance."
   (slot-value this 'object-name))
 
 (cl-defmethod object-print ((this config-prop) &rest strings)
@@ -85,7 +87,8 @@ The meta data property of a `config-prop-entry', which persists as a slot.")
 	   strings)))
 
 (cl-defmethod config-prop-default-input ((this config-prop))
-  "Return the default string value for the default when prompting user input."
+  "Return the default string value for the default when prompting user input.
+THIS is the instance."
   (with-slots (history input-type) this
     (if (boundp history)
 	(let ((val (symbol-value history)))
@@ -94,7 +97,8 @@ The meta data property of a `config-prop-entry', which persists as a slot.")
 	    (last (cl-first val)))))))
 
 (cl-defmethod config-prop-prompt ((this config-prop))
-  "Return the prompt to use for user input."
+  "Return the prompt to use for user input.
+THIS is the instance."
   (with-slots (prompt) this
     (let ((default (config-prop-default-input this)))
       (format "%s%s: " prompt (if default (format " (%s)" default) "")))))
@@ -102,26 +106,31 @@ The meta data property of a `config-prop-entry', which persists as a slot.")
 (cl-defmethod config-prop-read ((this config-prop))
   "Read the user input for the property.
 The default reads a string using `config-prop-default' and
-`config-prop-prompt' with the history slot."
+`config-prop-prompt' with the history slot.
+THIS is the instance."
   (with-slots (history) this
     (let* ((default (config-prop-default-input this))
 	   (prompt (config-prop-prompt this)))
       (read-string prompt nil history default))))
 
 (cl-defmethod config-prop-validate ((this config-prop) val)
-  "Raise an error if user input VAL is not not valid data."
+  "Raise an error if user input VAL is not not valid data.
+THIS is the instance."
   nil)
 
 (cl-defmethod config-persistent-reset ((this config-prop))
-  "Clear any state \(i.e. history) from the property."
-  (with-slots (history) this
+  "Clear any state \(ie history) from the property.
+THIS is the instance"
+  (with-slots (object-name history) this
     (let ((hval (symbol-value history)))
       (if hval
 	  (setf hval nil)
-	(message "Warning: null history value fro property: %S" this)))))
+	(message "Warning: null history value for property: %s"
+		 object-name)))))
 
 (cl-defmethod config-prop-description ((this config-prop))
-  "The human readable description of this property."
+  "The human readable description of this property.
+THIS is the instance."
   (with-slots (object-name) this
     (with-temp-buffer
       (insert (symbol-name object-name))
@@ -131,8 +140,9 @@ The default reads a string using `config-prop-default' and
       (capitalize-region (point-min) (point-max))
       (buffer-string))))
 
-(cl-defmethod config-persistent-doc ((this config-prop) level)
-  "Write the property \(meta data) documentation."
+(cl-defmethod config-persistent-doc ((this config-prop) _)
+  "Write the property \(meta data) documentation.
+THIS is the instance."
   (let ((desc (config-prop-description this))
 	(doc (->> (slot-value this 'prop-entry)
 		  eieio-object-class
@@ -163,6 +173,8 @@ The default reads a string using `config-prop-default' and
   :documentation "A boolean property that offers quick selection.")
 
 (cl-defmethod config-prop-read ((this config-boolean-prop))
+  "Read a config property input from the user as a boolean.
+THIS is the instance."
   (let ((prompt (format (slot-value this 'prompt) "? ")))
     (y-or-n-p prompt)))
 
@@ -177,12 +189,15 @@ The Lisp data type to expect, which is either symbols 'float or 'integer."))
   :documentation "A numeric \(int or float) property.")
 
 (cl-defmethod config-prop-read ((this config-number-prop))
+  "Read a config property input from the user as a number.
+THIS is the instance."
   (with-slots (history) this
     (let* ((default (config-prop-default-input this))
 	   (prompt (config-prop-prompt this)))
       (read-number prompt default))))
 
 (cl-defmethod config-prop-validate ((this config-number-prop) val)
+  "Validate the property value VAL using THIS instance."
   (with-slots (number-type) this
     (let ((given-type (type-of val)))
       (if (not (eq number-type given-type))
@@ -195,6 +210,8 @@ The Lisp data type to expect, which is either symbols 'float or 'integer."))
   :documentation "An Emacs buffer property.")
 
 (cl-defmethod config-prop-read ((this config-buffer-prop))
+  "Read a config property input from the user as a buffer name.
+THIS is the instance."
   (with-slots (history) this
     ;; rid killed buffers from history
     (setf (symbol-value history)
@@ -209,6 +226,7 @@ The Lisp data type to expect, which is either symbols 'float or 'integer."))
       val)))
 
 (cl-defmethod config-prop-validate ((this config-buffer-prop) val)
+  "Validate the property value VAL using THIS instance."
   (if (not (get-buffer-process val))
       (error "Buffer %S has no process" val)))
 
@@ -236,10 +254,17 @@ This is always used for `completion-ignore-case'."))
   :documentation "Property that prompts for a selection of a list of choices.")
 
 (cl-defmethod config-choice-prop-choices ((this config-choice-prop))
+  "Read from a list of choices for THIS property instance.
+This list of choices is given by the `choices' slot or generated using the
+function given in slot `choices-fn'."
   (with-slots (choices choices-fn) this
     (or choices (funcall choices-fn this))))
 
 (cl-defmethod config-prop-read ((this config-choice-prop))
+  "Read a config property input from the user as a list of choices.
+The list of choices is generated with `config-choice-prop-choices', then read
+using `choice-program-complete'.
+THIS is the instance."
   (with-slots (history ignore-case) this
     (let ((choices (config-choice-prop-choices this)))
       (if (= 1 (length choices))
@@ -254,9 +279,12 @@ This is always used for `completion-ignore-case'."))
 (defclass config-choice-description-prop (config-choice-prop)
   ()
   :method-invocation-order :c3
-  :documentation "Property that prompts for a selection of a list of choices.")
+  :documentation "Property that prompts for a selection of a list of choices.
+This is just like `config-choice-prop' but returns the input as a string.")
 
 (cl-defmethod config-prop-read ((this config-choice-description-prop))
+  "Read a config property input from the user as a list of choices.
+THIS is the instance."
   (with-slots (history ignore-case) this
     (let ((choices (config-choice-prop-choices this)))
       (if (= 1 (length choices))
@@ -277,9 +305,12 @@ The major mode to use to validate/select `config-file` buffers."))
   :documentation "Property that prompts for a file.")
 
 (cl-defmethod config-prop-default-input ((this config-file-prop))
+  "Return nil as the default input for THIS instance."
   nil)
 
 (cl-defmethod config-prop-read ((this config-file-prop))
+  "Read a config property input from the user as a file.
+THIS is the instance."
   (with-slots (history description) this
     (let* ((prompt (config-prop-prompt this))
 	   (fname (buffer-file-name))
@@ -290,6 +321,7 @@ The major mode to use to validate/select `config-file` buffers."))
 	  (set history file-name-history))))))
 
 (cl-defmethod config-prop-validate ((this config-file-prop) val)
+  "Validate VAL as a file for THIS instance."
   (with-slots (validate-modes prop-entry) this
     (let ((description (slot-value prop-entry 'description)))
       (with-current-buffer (find-file-noselect val)
@@ -303,7 +335,7 @@ The major mode to use to validate/select `config-file` buffers."))
   :documentation "Directory property")
 
 (cl-defmethod config-prop-read ((this config-directory-prop))
-  "Read a directory from the user."
+  "Read a directory from the user for THIS instance."
   (with-slots (history choices) this
     (let ((default (config-prop-default-input this))
 	  (prompt (config-prop-prompt this)))
@@ -317,6 +349,8 @@ The major mode to use to validate/select `config-file` buffers."))
 	 :documentation "The function to invoke when reading the config.")))
 
 (cl-defmethod config-prop-read ((this config-eval-prop))
+  "Read a value using a function in the `func' slot from the user.
+THIS is the instance."
   (with-slots (func history prop-entry) this
     (let ((default (config-prop-default-input this))
 	  (prompt (config-prop-prompt this)))
@@ -339,6 +373,7 @@ Important: Extend from this class _last_ so that it captures all proprties
 since this class sets :pslots in the `config-persistent' subclass.")
 
 (cl-defmethod initialize-instance ((this config-prop-entry) &optional slots)
+  "Initialize THIS instance using SLOTS as initial values."
   (let* ((props (plist-get slots :props))
 	 (pslots (-map #'(lambda (prop)
 			   (config-prop-name prop))
@@ -355,6 +390,7 @@ since this class sets :pslots in the `config-persistent' subclass.")
   (cl-call-next-method this slots))
 
 (cl-defmethod config-persistent-persist-slots ((this config-prop-entry))
+  "Return all non-transient slots of THIS that should be persisted."
   (with-slots (pslots) this
     (->> pslots
 	 (cl-remove-if #'(lambda (slot-name)
@@ -377,7 +413,8 @@ since this class sets :pslots in the `config-persistent' subclass.")
 	 strings))
 
 (cl-defmethod config-prop-save-config ((this config-prop-entry))
-  "Tell the compiler manager to persist the configuration of all compilers."
+  "Tell the compiler manager to persist the configuration of all compilers.
+THIS is the instance."
   (with-slots (manager) this
     (unless manager
       (error "No manager set in compiler: %S"
@@ -386,7 +423,8 @@ since this class sets :pslots in the `config-persistent' subclass.")
     (config-persistable-save manager)))
 
 (cl-defmethod config-prop-set ((this config-prop-entry) prop val)
-  "Set a property with name \(symbol) PROP to VAL."
+  "Set a property with name \(symbol) PROP to VAL.
+THIS is the instance."
   (config-prop-validate prop val)
   (setf (slot-value this (config-prop-name prop)) val)
   (config-prop-save-config this)
@@ -396,7 +434,8 @@ since this class sets :pslots in the `config-persistent' subclass.")
 	     (prin1-to-string val))))
 
 (cl-defmethod config-prop-by-order ((this config-prop-entry))
-  "Get all properties sorted by their order values."
+  "Get all properties sorted by their order values.
+THIS is the instance."
   (with-slots (props) this
     (setq props (sort props #'(lambda (a b)
 				(< (slot-value a 'order)
@@ -404,7 +443,8 @@ since this class sets :pslots in the `config-persistent' subclass.")
     props))
 
 (cl-defmethod config-prop-by-name ((this config-prop-entry) name)
-  "Get a property by \(symbol) NAME."
+  "Get a property by \(symbol) NAME.
+THIS is the instance."
   (with-slots (props) this
     (let ((prop-map (mapcar #'(lambda (prop)
 				`(,(config-prop-name prop) . ,prop))
@@ -422,7 +462,8 @@ CONFIG-OPTIONS informs how to configure the prop-entry.  It is one of:
     and then prompts and sets the property itself.
   - Form (prop-name <property to set>) prompts the specific property and value.
   - Form (prop-name <property to set> <value>) sets the specified
-    property to the value."
+    property to the value.
+THIS is the instance."
   (let (prop val)
     (cond ((or (null config-options) (eq config-options 'immediate))
 	   (with-slots (props last-selection) this
@@ -442,7 +483,8 @@ CONFIG-OPTIONS informs how to configure the prop-entry.  It is one of:
     (config-prop-set this prop val)))
 
 (cl-defmethod config-prop-entry-set-required ((this config-prop-entry))
-  "Set all required properties for the prop-entry."
+  "Set all required properties for the prop-entry.
+THIS is the instance."
   (dolist (prop (config-prop-by-order this))
     (let* ((name (config-prop-name prop))
 	   (val (slot-value this name))
@@ -453,7 +495,8 @@ CONFIG-OPTIONS informs how to configure the prop-entry.  It is one of:
 	(config-prop-set this prop val)))))
 
 (cl-defmethod config-persistent-reset ((this config-prop-entry))
-  "Wipe all values for the prop-entry."
+  "Wipe all values for the prop-entry.
+THIS is the instance."
   (dolist (prop (config-prop-by-order this))
     (config-prop-set this prop nil))
   (dolist (prop (config-prop-by-order this))
@@ -462,7 +505,9 @@ CONFIG-OPTIONS informs how to configure the prop-entry.  It is one of:
 
 (cl-defmethod config-persistent-doc ((this config-prop-entry) level)
   "Return the prop-entry level documentation.
-See the :prop-entry-doc slot."
+See the :prop-entry-doc slot.
+LEVEL is the depth of this recursive call.
+THIS is the instance."
   (cl-call-next-method this level)
   (let ((props (config-prop-by-order this)))
     (when props
@@ -471,7 +516,8 @@ See the :prop-entry-doc slot."
 	(config-persistent-doc prop (1+ level))))))
 
 (cl-defmethod config-prop-entry-info ((this config-prop-entry))
-  "Create and display a buffer with the `prop-entry' documentation and config."
+  "Create and display a buffer with the `prop-entry' documentation and config.
+THIS is the instance."
   (with-current-buffer (->> (config-entry-name this)
 			    capitalize
 			    (format "%s Info")
@@ -489,6 +535,11 @@ See the :prop-entry-doc slot."
 
 (cl-defmethod config-prop-entry-write-configuration ((this config-prop-entry)
 						     &optional level header)
+  "Write a human readable documentation string of THIS property.
+This is written in to the current buffer.
+LEVEL is the indentation level.
+HEADER is a string written to describe the property, otherise the description
+is used."
   (setq level (or level 0))
   (with-slots (description) this
     (insert (or header (format "%s configuration:" description)))
@@ -502,7 +553,7 @@ See the :prop-entry-doc slot."
 	(insert (format "%s%S: %s\n" space name val))))))
 
 (cl-defmethod config-prop-entry-show-configuration ((this config-prop-entry))
-  "Create a buffer with the configuration of the prop-entry."
+  "Create a buffer with the configuration of the prop-entry of THIS."
   (with-slots (description) this
     (with-current-buffer
 	(-> (format "*%s Configuration*" description)

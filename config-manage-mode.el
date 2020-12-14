@@ -298,7 +298,8 @@ Special commands:
 (cl-defmethod config-manager-list-entries-buffer ((this config-manager)
 						  &optional buffer-name)
   "Create a listing of buffers used for viewing, renameing, deleting, adding.
-BUFFER-NAME is the name of the buffer holding the entries for the mode."
+BUFFER-NAME is the name of the buffer holding the entries for the mode.
+THIS is the instance."
   (let* ((buffer-name (or buffer-name (->> (config-manager-name this)
 					   (format "*%s*"))))
 	 (buf (get-buffer buffer-name))

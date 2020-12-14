@@ -55,7 +55,7 @@
 Super class for objects that want to persist to the file system.")
 
 (cl-defmethod initialize-instance ((this config-persistent) &optional slots)
-  
+  "Initialize THIS instance using SLOTS as initial values."
   (setq slots (plist-put slots :pslots
 			 (append (plist-get slots :pslots)
 				 '(object-name))))
@@ -73,7 +73,7 @@ Super class for objects that want to persist to the file system.")
 			 (cl-print-object this (current-buffer))))))
 
 (cl-defmethod config-persistent-destruct ((this config-persistent))
-  "Deallocate any resources when the instance falls out of use.
+  "Deallocate any resources of THIS when the instance falls out of use.
 The EIEIO `destructor' is deprecated in 26.  However is still
 used and needed in this framework.")
 
@@ -89,7 +89,7 @@ used and needed in this framework.")
       val))
 
 (cl-defmethod config-persistent-persist-slots ((this config-persistent))
-  "Persist the slots of the instance."
+  "Persist the slots of the THIS instance."
   (with-slots (pslots) this
     (->> pslots
 	 (-map (lambda (slot)
@@ -98,7 +98,7 @@ used and needed in this framework.")
 		   (cons slot val)))))))
 
 (cl-defmethod config-persistent-persist ((this config-persistent))
-  "Persist an object."
+  "Persist an THIS instance."
   (append `((class . ,(eieio-object-class this))
 	    (slots . ,(config-persistent-persist-slots this)))
 	  (condition-case nil
@@ -319,32 +319,39 @@ Keeps track of the last entry for last-visit cycle method."))
   :documentation "Manages configurations.")
 
 (cl-defmethod initialize-instance ((this config-manager) &optional slots)
+  "Initialize THIS instance using SLOTS as initial values."
   (setq slots (plist-put slots :pslots
 			 (append (plist-get slots :pslots)
 				 '(object-name entries))))
   (cl-call-next-method this slots))
 
 (cl-defmethod config-manager-name ((this config-manager))
-  "Return the name of the configuration manager."
+  "Return the name of the configuration manager.
+THIS is the instance."
   (slot-value this 'object-name))
 
 (cl-defmethod config-manager-new-entry ((this config-manager) &optional slots)
   "Create a new nascent entry object.
-SLOTS are passed as a property list on instantiating the object."
+SLOTS are passed as a property list on instantiating the object.
+THIS is the instance."
   (error "No implementation of `config-manager-new-entry' for class `%S'"
 	 (eieio-object-class this)))
 
 (cl-defmethod config-manager-entry-default-name ((this config-manager))
-  "Return a name for a new entry created with `config-manager-new-entry'."
+  "Return a name for a new entry created with `config-manager-new-entry'.
+THIS is the instance."
   (error "No implementation of `config-manager-entry-default-name' for class `%S'"
 	 (eieio-object-class this)))
 
 (cl-defmethod config-manager--update-entries ((this config-manager) entries)
-  "Observer pattern to for observers to react to entries modifications.")
+  "Observer pattern to for observers to react to entries modifications.
+ENTRIES, the entries to update.
+THIS is the instance.")
 
 (cl-defmethod config-manager-cycle-entries ((this config-manager) entry
 					    &optional mode)
-  "Rearrange the entry order to place ENTRY in place after cycling."
+  "Rearrange the entry order to place ENTRY in place after cycling.
+THIS is the instance."
   (with-slots (entries cycle-method) this
     (let ((first-entry (car entries)))
       (setq entries (cons entry (remove entry entries)))
@@ -357,7 +364,8 @@ SLOTS are passed as a property list on instantiating the object."
       entries)))
 
 (cl-defmethod config-manager-entry-exists-p ((this config-manager) entry)
-  "If ENTRY is an instance of a class or subclass of `config-entry' return it."
+  "If ENTRY is an instance of a class or subclass of `config-entry' return it.
+THIS is the instance."
   (with-slots (entries) this
     (and (eieio-object-p entry)
 	 (object-of-class-p entry 'config-entry)
@@ -366,7 +374,7 @@ SLOTS are passed as a property list on instantiating the object."
 
 (cl-defmethod config-manager-entry ((this config-manager)
 				    criteria &optional assertp)
-  "This returns an entry based on CRITERIA.
+  "Return an entry based on CRITERIA from THIS manager.
 CRITERIA is:
   a string: the entry name to switch to the entry with that name
   an integer: get it by index
@@ -403,11 +411,12 @@ CRITERIA is:
 Entries returned are only entries contained in this instance of the
 `config-manager'.
 
-Sorting on the returned entries are done when SORT-FORM is non-`nil'.  Any
+Sorting on the returned entries are done when SORT-FORM is non-nil.  Any
 sorting is only done on the returned set of entries and doesn't change any
 of the object's internal state.  Sorting is done based on SORT-FORM's value:
  - symbol 'lexical: sort lexically based on the config entry's name
- - function: sort using SORT-FORM as a predicate \(see `sort')."
+ - function: sort using SORT-FORM as a predicate \(see `sort').
+THIS is the instance."
   (with-slots (entries) this
     (setq include-fn (or include-fn (lambda (entry) t))
 	  exclude-fn (or exclude-fn (lambda (entry) nil)))
@@ -431,7 +440,8 @@ of the object's internal state.  Sorting is done based on SORT-FORM's value:
 					       &optional assertp)
   "The current entry we're in/at, if there is one.
 
-ASSERTP, if non-nil, raise an error if there is no current entry."
+ASSERTP, if non-nil, raise an error if there is no current entry.
+THIS is the instance."
   (with-slots (last-switched-to) this
     (or last-switched-to
 	(cl-first (config-manager--entries this))
@@ -442,7 +452,8 @@ ASSERTP, if non-nil, raise an error if there is no current entry."
   "Return the next `cycled' entry based on slot `cycle-method'.
 The default uses:
   last-visit: go to the last visited entry
-	next: go to the next highest priority entry"
+	next: go to the next highest priority entry
+THIS is the instance."
   (with-slots (last-switched-to cycle-method) this
     (let ((entries (config-manager--entries this))
 	  ;; the current entry we're in (if there is one)
@@ -490,7 +501,8 @@ This is the typical unique name (buffers, files etc) creation."
       (concat name "<" (-> idx prin1-to-string) ">"))))
 
 (cl-defmethod config-manager-add-entry ((this config-manager) &optional slots)
-  "Add and optionally create first a new entry if ENTRY is nil."
+  "Add and optionally create first a new entry in THIS manager.
+SLOTS, used to create the new entry that is added."
   (let* ((entry (config-manager-new-entry this slots))
 	 (name (or (config-entry-name entry)
 		   (config-manager-entry-default-name this))))
@@ -503,25 +515,25 @@ This is the typical unique name (buffers, files etc) creation."
       (config-manager-cycle-entries this entry 'after)
       entry)))
 
-(cl-defmethod config-manager-insert-entry ((this config-manager)
-					   &optional context)
+(cl-defmethod config-manager-insert-entry ((this config-manager) &optional _)
+  "Insert a new entry for THIS."
   (config-manager-add-entry this))
 
-(cl-defmethod config-manager-set-name ((this config-manager)
-				       &optional new-name)
-  "Set the name of this `config-manager' to NEW-NAME."
+(cl-defmethod config-manager-set-name ((this config-manager) &optional new-name)
+  "Set the name of THIS `config-manager' to NEW-NAME."
   (with-slots (name) this
     (let ((new-name (or new-name (config-manager-entry-default-name this))))
       (setq name new-name))))
 
 (cl-defmethod config-manager-entry-restore ((this config-manager)
 					    &optional entry)
-  "Restore this `config-manager' and contained `config-entry' instances."
+  "Restore THIS `config-manager' and contained `config-entry' instances.
+ENTRY the entry to restore, or if nil, get the first entry available."
   (let ((entry (or entry (config-manager-entry this 0))))
     (config-entry-restore entry)))
 
 (cl-defmethod config-manager-remove-entry ((this config-manager) entry)
-  "Remove/kill ENTRY from this manager."
+  "Remove/kill ENTRY from THIS manager."
   (with-slots (entries) this
     (when (memq entry entries)
       (let ((name (config-entry-name entry)))
@@ -531,7 +543,7 @@ This is the typical unique name (buffers, files etc) creation."
 	entry))))
 
 (cl-defmethod config-manager-activate ((this config-manager) criteria)
-  "Switch to a config entry.
+  "Switch to a config entry in THIS manager.
 
 If the config CRITERIA is the name of the config to switch to, go to that
 config, otherwise, create a new one with that name and switch to it.
@@ -547,15 +559,18 @@ Returns the config entry we switched to based on CRITERIA \(see
     entry))
 
 (cl-defmethod config-manager-list-clear ((this config-manager))
+  "Clear all entries of THIS manager."
   (with-slots (entries) this
     (setq entries nil)
     (config-manager--update-entries this entries)))
 
 (cl-defmethod config-manager-cycle-methods ((this config-manager))
-  "All valid cycle methods (see `config-manager-entry-cycle')."
+  "All valid cycle methods (see `config-manager-entry-cycle').
+THIS is the instance."
   '(last-visit next))
 
 (cl-defmethod config-manager-toggle-cycle-method ((this config-manager))
+  "Rotate through the cycle methods for THIS configuration manager."
   (let* ((methods (config-manager-cycle-methods this))
 	 (method (config-manager-cycle-method this)))
     (setq method (or (cadr (member method methods)) (car methods)))
@@ -563,7 +578,8 @@ Returns the config entry we switched to based on CRITERIA \(see
     method))
 
 (cl-defmethod config-manager-list-entries ((this config-manager))
-  "Return a multi-listing of the entries contained in this manager."
+  "Return a multi-listing of the entries contained in this manager.
+THIS is the instance."
   (cl-flet* ((get-max
 	      (getter-fn)
 	      (let ((entries (config-manager--entries this)))
@@ -620,7 +636,10 @@ Returns the config entry we switched to based on CRITERIA \(see
 
 (cl-defmethod config-manager-read-new-name ((this config-manager)
 					    &optional prompt auto-generate-p)
-  "Read an entry name from user input."
+  "Read an entry name from user input for THIS configuration manager.
+PROMPT is used for the user input.
+AUTO-GENERATE-P, if non-nil, generate a default name rather than reading it
+from the user"
   (let ((def (config-manager-entry-default-name this))
 	name)
     (if auto-generate-p
@@ -632,7 +651,8 @@ Returns the config entry we switched to based on CRITERIA \(see
       name)))
 
 (cl-defmethod config-persistent-doc ((this config-manager) &optional level)
-  "Create markdown documentation on this manager and its entries.
+  "Create markdown documentation on THIS manager and its entries.
+LEVEL is the depth of recursion, which effects the indention.
 The buffer is set to `markdown-mode' if library is available."
   (setq level (or level 2))
   (let* ((name (capitalize (config-manager-name this)))
