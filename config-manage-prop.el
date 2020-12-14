@@ -115,7 +115,10 @@ The default reads a string using `config-prop-default' and
 (cl-defmethod config-persistent-reset ((this config-prop))
   "Clear any state \(i.e. history) from the property."
   (with-slots (history) this
-    (setq (symbol-value history) nil)))
+    (let ((hval (symbol-value history)))
+      (if hval
+	  (setf hval nil)
+	(message "Warning: null history value fro property: %S" this)))))
 
 (cl-defmethod config-prop-description ((this config-prop))
   "The human readable description of this property."
