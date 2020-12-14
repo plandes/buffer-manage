@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 ## [Unreleased]
+### Changed
+- Upgraded to Emacs [zenbuild].
+- Compat with recent *flycheck* and `package-lint`.
+- Minor bug fixes.
 
 
 ## [0.10] - 2019-06-20
@@ -66,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 First major release.
 
 
+<!-- links -->
 [Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.10...HEAD
 [0.10]: https://github.com/plandes/buffer-manage/compare/v0.9...v0.10
 [0.9]: https://github.com/plandes/buffer-manage/compare/v0.8...v0.9
@@ -77,3 +82,5 @@ First major release.
 [0.3]: https://github.com/plandes/buffer-manage/compare/v0.2...v0.3
 [0.2]: https://github.com/plandes/buffer-manage/compare/v0.1...v0.2
 [0.1]: https://github.com/plandes/buffer-manage/compare/0c28b86...v0.1
+
+[zenbuild]: https://github.com/plandes/zenbuild

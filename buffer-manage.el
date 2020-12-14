@@ -1,8 +1,8 @@
 ;;; buffer-manage.el --- manage buffers
 
-;; Copyright (C) 2015 - 2019 Paul Landes
+;; Copyright (C) 2015 - 2020 Paul Landes
 
-;; Version: 0.10
+;; Version: 0.11
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: interactive buffer management
