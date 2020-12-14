@@ -1,6 +1,6 @@
 ;;; config-manage-prop.el --- property based configuration
 
-;; Copyright (C) 2017 - 2019 Paul Landes
+;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
