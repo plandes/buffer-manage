@@ -48,6 +48,7 @@
 (require 'config-manage-prop)
 (require 'config-manage-mode)
 
+(defconst config-manager-status-defs config-manage-base-status-defs)
 (defalias 'config-manager-iterate-name 'config-manage-base-iterate-name)
 (defalias 'config-manager-add-entry 'config-manage-base-add-entry)
 (defalias 'config-manage-mode-refresh 'config-manage-base-mode-refresh)
