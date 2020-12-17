@@ -225,7 +225,8 @@ When true, don't necessarily got to another entry in the frame just because
 it's visible.  One way this happens is to chose the next desired entry
 based on `cycle-method' regardeless of the last visited entry or what entries
 are in the current frame.")
-   (read-history :initform nil
+   (read-history :initform (gensym "buffer-manage-read-history")
+		 :type symbol
 		 :protection :private
 		 :documentation "\
 Used for history when reading user input when switching to other buffers."))
@@ -237,7 +238,8 @@ Used for history when reading user input when switching to other buffers."))
   "Initialize instance THIS with arguments SLOTS."
   (setq slots (plist-put slots :list-header-fields
 			 '("C" "Name" "Working Directory")))
-  (cl-call-next-method this slots))
+  (cl-call-next-method this slots)
+  (set (slot-value this 'read-history) nil))
 
 (cl-defmethod config-persistent-destruct ((this buffer-manager))
   "Dispose by disping all buffer entries of THIS buffer manager.
@@ -418,6 +420,7 @@ PROCESS the that finished.
 MSG the message that resulted from the process.
 ENTRY is the `buffer-entry' instance.
 MANAGER the `buffer-manager' singleton instance."
+  (ignore process)
   (if (or (string= msg "finished\n")
 	  (save-match-data (string-match "^exited" msg)))
       (config-manager-remove-entry manager entry)))
@@ -571,18 +574,13 @@ THIS is the object instance."
 				   (config-entry-name entry)))
 			   entries))
     (with-slots (read-history) this
-      (let ((hist read-history)
-	    input)
-	(setq input
-	      (completing-read prompt (mapcar name-fn entries)
-			       nil require-match nil 'hist def))
+      (let ((input (completing-read prompt (mapcar name-fn entries)
+				    nil require-match nil read-history def)))
 	(if (= 0 (length input))
 	    (setq input nil)
 	  ;; keep non-matching name for new shell names, rename shell etc.
 	  (setq input (or (cdr (assoc input name-map))
-			  (unless require-match input)))
-	  (if input
-	      (setq read-history (append (list input) read-history))))
+			  (unless require-match input))))
 	input))))
 
 (cl-defmethod buffer-manager-interactive-functions ((this buffer-manager)
@@ -729,7 +727,7 @@ where:
 
 See `buffer-manager-create-interactive-functions'.
 See overriden method: https://github.com/plandes/bshell/blob/master/bshell.el"
-  nil)
+  (ignore this))
 
 (cl-defmethod buffer-manager-create-interactive-functions
   ((this buffer-manager) singleton-variable-sym)

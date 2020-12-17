@@ -251,10 +251,8 @@ value of FUNC."
 (defun config-manage-mode-new ()
   "Create a new entry."
   (interactive)
-  (let* ((this config-manager-instance)
-	 (name (config-manager-read-new-name this)))
-    (config-manager-insert-entry this)
-    (config-manage-mode-refresh)))
+  (config-manager-insert-entry config-manager-instance)
+  (config-manage-mode-refresh))
 
 (define-derived-mode config-manage-mode fundamental-mode "Configuration Manager"
   "Major mode for displaying and buffer entries.

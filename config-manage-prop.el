@@ -113,7 +113,7 @@ THIS is the instance."
 (cl-defmethod config-prop-validate ((this config-prop) val)
   "Raise an error if user input VAL is not not valid data.
 THIS is the instance."
-  nil)
+  (ignore this val))
 
 (cl-defmethod config-persistent-reset ((this config-prop))
   "Clear any state \(ie history) from the property.
@@ -224,6 +224,7 @@ THIS is the instance."
 
 (cl-defmethod config-prop-validate ((this config-buffer-prop) val)
   "Validate the property value VAL using THIS instance."
+  (ignore this)
   (if (not (get-buffer-process val))
       (error "Buffer %S has no process" val)))
 
@@ -303,7 +304,7 @@ The major mode to use to validate/select `config-file` buffers."))
 
 (cl-defmethod config-prop-default-input ((this config-file-prop))
   "Return nil as the default input for THIS instance."
-  nil)
+  (ignore this))
 
 (cl-defmethod config-prop-read ((this config-file-prop))
   "Read a config property input from the user as a file.

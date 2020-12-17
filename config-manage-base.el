@@ -80,10 +80,12 @@ THIS is the class instance."
 (cl-defmethod config-persistent-destruct ((this config-persistent))
   "Deallocate any resources of THIS when the instance falls out of use.
 The EIEIO `destructor' is deprecated starting in 26.  However is still used and
-needed in this framework.")
+needed in this framework."
+  (ignore this))
 
 (cl-defmethod config-persistent-persist-value ((this config-persistent) val)
   "Generate a persistent state of VAL using slot data in THIS instance."
+  (ignore this)
   (or (and (consp val)
 	   (let ((fval (car val)))
 	     (and fval
@@ -115,6 +117,7 @@ needed in this framework.")
   "Unpersist VAL using THIS persistent.
 This is done by determining its type and then recursively applying to create
 unerpsist \(optionally) children classes and slots."
+  (ignore this)
   (or (and (consp val)
 	   (let ((fval (car val)))
 	     (and (consp fval)
@@ -158,6 +161,7 @@ This implementation sets all slots to nil."
 
 (cl-defmethod eieio-object-name-string ((this config-persistent))
   "Return a string as a representation of the in memory instance of THIS."
+  (ignore this)
   (with-slots (pslots) this
     (->> pslots
 	 (cl-remove 'object-name)
@@ -166,11 +170,12 @@ This implementation sets all slots to nil."
 		     (->> (cond ((stringp val) val)
 				(t (prin1-to-string val)))
 			  (format "%S=%s" slot)))))
-	 ((lambda (slots)
-	    (let ((slot-str (mapconcat #'identity slots " ")))
-	      (if (> (length slot-str) 70)
-		  (format "|slots|=%d" (length slot-str))
-		(concat "slots=[" slot-str "]"))))))))
+	 (funcall #'(lambda (slots)
+		      (let ((slot-str (mapconcat #'identity slots " ")))
+			(if (> (length slot-str) 70)
+			    (format "|slots|=%d" (length slot-str))
+			  (concat "slots=[" slot-str "]"))))))))
+
 
 
 (defclass config-persistable (config-persistent)
@@ -243,12 +248,12 @@ THIS is the class instance."
 (cl-defmethod config-entry-save ((this config-entry))
   "Save the current entry configuration.
 THIS is the class instance."
-  nil)
+  (ignore this))
 
 (cl-defmethod config-entry-restore ((this config-entry))
   "Restore the current entry configuration.
 THIS is the class instance."
-  nil)
+  (ignore this))
 
 (cl-defmethod config-persistent-doc ((this config-entry) level)
   "Write compiler documentation to the current buffer.
@@ -343,6 +348,7 @@ THIS is the instance."
   "Create a new nascent entry object.
 SLOTS are passed as a property list on instantiating the object.
 THIS is the instance."
+  (ignore slots)
   (error "No implementation of `config-manager-new-entry' for class `%S'"
 	 (eieio-object-class this)))
 
@@ -355,12 +361,14 @@ THIS is the instance."
 (cl-defmethod config-manager--update-entries ((this config-manager) entries)
   "Observer pattern to for observers to react to entries modifications.
 ENTRIES, the entries to update.
-THIS is the instance.")
+THIS is the instance."
+  (ignore this entries))
 
 (cl-defmethod config-manager-cycle-entries ((this config-manager) entry
 					    &optional mode)
   "Rearrange the entry order to place ENTRY in place after cycling.
 THIS is the instance."
+  (ignore mode)
   (with-slots (entries cycle-method) this
     (let ((first-entry (car entries)))
       (setq entries (cons entry (remove entry entries)))
@@ -430,8 +438,8 @@ of the object's internal state.  Sorting is done based on SORT-FORM's value:
  - function: sort using SORT-FORM as a predicate \(see `sort').
 THIS is the instance."
   (with-slots (entries) this
-    (setq include-fn (or include-fn (lambda (entry) t))
-	  exclude-fn (or exclude-fn (lambda (entry) nil)))
+    (setq include-fn (or include-fn (lambda (_) t))
+	  exclude-fn (or exclude-fn (lambda (_) nil)))
     (let ((entries
 	   (remove nil (mapcar (lambda (entry)
 				 (if (and (funcall include-fn entry)
@@ -481,14 +489,12 @@ THIS is the instance."
 		;; don't pick the one we are in or we won't switch at all
 		(not cur-entry))
 	   last-switched-to)
-       (let ((bak-entries (copy-tree entries)))
-	 (or
-	  (cl-case method
-	    (last-visit (cl-second entries))
-	    (next (cl-second entries))
-	    (otherwise (error "Unimplemented (but value) cycle method: %S"
-			      method)))
-	  (car entries)))))))
+       (or (cl-case method
+	     (last-visit (cl-second entries))
+	     (next (cl-second entries))
+	     (otherwise (error "Unimplemented (but value) cycle method: %S"
+			       method)))
+	   (car entries))))))
 
 (defun config-manage-base-iterate-name (name names)
   "Create a unique NAME from existing NAMES by iterating FORM<N> integer.
@@ -548,11 +554,10 @@ ENTRY the entry to restore, or if nil, get the first entry available."
   "Remove/kill ENTRY from THIS manager."
   (with-slots (entries) this
     (when (memq entry entries)
-      (let ((name (config-entry-name entry)))
-	(setq entries (remove entry entries))
-	(config-manager--update-entries this entries)
-	(config-persistent-destruct entry)
-	entry))))
+      (setq entries (remove entry entries))
+      (config-manager--update-entries this entries)
+      (config-persistent-destruct entry)
+      entry)))
 
 (cl-defmethod config-manager-activate ((this config-manager) criteria)
   "Switch to a config entry in THIS manager.
@@ -579,6 +584,7 @@ Returns the config entry we switched to based on CRITERIA \(see
 (cl-defmethod config-manager-cycle-methods ((this config-manager))
   "All valid cycle methods (see `config-manager-entry-cycle').
 THIS is the instance."
+  (ignore this)
   '(last-visit next))
 
 (cl-defmethod config-manager-toggle-cycle-method ((this config-manager))
@@ -692,8 +698,7 @@ The buffer is set to `markdown-mode' if library is available."
   "Refresh the entry listing buffer."
   (interactive)
   (config-manage-mode-assert)
-  (let ((line (count-lines (point-min) (point)))
-	(pos (point)))
+  (let ((line (count-lines (point-min) (point))))
     (setq buffer-read-only nil)
     (erase-buffer)
     (config-manager-list-entries config-manager-instance)
