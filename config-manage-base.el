@@ -1,10 +1,13 @@
-;;; config-manage-base.el --- configuraiton management base classes
+;;; config-manage-base.el --- Configuration management base classes  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
-;; Keywords: configuration settings persistable
+;; Keywords: internal maint
+;; URL: https://github.com/plandes/buffer-manage
+;; Package-Requires: ((emacs "26.1"))
+;; Package-Version: 0
 
 ;; This file is not part of GNU Emacs.
 
@@ -42,17 +45,18 @@
 (config-manage-declare-variables config-manager-instance)
 (defvar config-entry-status)
 
-;; This class is necessary since EIEIO list types can't unpersist as they produce
-;; this error:
-;;   eieio-persistent-validate/fix-slot-value: In save file, list of object
-;;   constructors found, but no :type specified for slot displays of type nil
 (defclass config-persistent (eieio-named)
   ((pslots :initarg :pslots
 	   :initform nil
 	   :type list))
   :method-invocation-order :c3
   :documentation "\
-Super class for objects that want to persist to the file system.")
+Super class for objects that want to persist to the file system.
+
+This class is necessary since EIEIO list types can't unpersist as they produce
+this error:
+  eieio-persistent-validate/fix-slot-value: In save file, list of object
+  constructors found, but no :type specified for slot displays of type nil")
 
 (cl-defmethod initialize-instance ((this config-persistent) &optional slots)
   "Initialize THIS instance using SLOTS as initial values."
@@ -62,7 +66,8 @@ Super class for objects that want to persist to the file system.")
   (cl-call-next-method this slots))
 
 (cl-defmethod config-persistent--unimplemented ((this config-persistent) method)
-  "Signal error CONFIG-MANAGE-UN-IMPLEMENTED for EIEIO METHOD."
+  "Signal error CONFIG-MANAGE-UN-IMPLEMENTED for EIEIO METHOD.
+THIS is the class instance."
   (with-temp-buffer
     (set-buffer (get-buffer-create "*config-manage-backtrace*"))
     (erase-buffer)
@@ -74,22 +79,23 @@ Super class for objects that want to persist to the file system.")
 
 (cl-defmethod config-persistent-destruct ((this config-persistent))
   "Deallocate any resources of THIS when the instance falls out of use.
-The EIEIO `destructor' is deprecated in 26.  However is still
-used and needed in this framework.")
+The EIEIO `destructor' is deprecated starting in 26.  However is still used and
+needed in this framework.")
 
 (cl-defmethod config-persistent-persist-value ((this config-persistent) val)
+  "Generate a persistent state of VAL using slot data in THIS instance."
   (or (and (consp val)
-	   (or (let ((fval (car val)))
-		 (and fval
-		      (eieio-object-p fval)
-		      (object-of-class-p fval 'config-persistent)
-		      (-map (lambda (val)
-			      (config-persistent-persist val))
-			    val)))))
+	   (let ((fval (car val)))
+	     (and fval
+		  (eieio-object-p fval)
+		  (object-of-class-p fval 'config-persistent)
+		  (-map (lambda (val)
+			  (config-persistent-persist val))
+			val))))
       val))
 
 (cl-defmethod config-persistent-persist-slots ((this config-persistent))
-  "Persist the slots of the THIS instance."
+  "Generate a persistent state the slots of THIS instance."
   (with-slots (pslots) this
     (->> pslots
 	 (-map (lambda (slot)
@@ -98,7 +104,7 @@ used and needed in this framework.")
 		   (cons slot val)))))))
 
 (cl-defmethod config-persistent-persist ((this config-persistent))
-  "Persist an THIS instance."
+  "Generate a persistent state of THIS instance."
   (append `((class . ,(eieio-object-class this))
 	    (slots . ,(config-persistent-persist-slots this)))
 	  (condition-case nil
@@ -106,20 +112,21 @@ used and needed in this framework.")
 	    (cl-no-next-method))))
 
 (cl-defmethod config-persistent-unpersist-value ((this config-persistent) val)
-  "Unpersist VAL by determining its type and then recursively applying to
-create unerpsist \(optionally) children classes and slots."
+  "Unpersist VAL using THIS persistent.
+This is done by determining its type and then recursively applying to create
+unerpsist \(optionally) children classes and slots."
   (or (and (consp val)
-	   (or (let ((fval (car val)))
-		 (and (consp fval)
-		      (consp (car fval))
-		      (eq 'class (caar fval))
-		      (-map (lambda (val)
-			      (config-persistent-unpersist val))
-			    val)))))
+	   (let ((fval (car val)))
+	     (and (consp fval)
+		  (consp (car fval))
+		  (eq 'class (caar fval))
+		  (-map (lambda (val)
+			  (config-persistent-unpersist val))
+			val))))
       val))
 
 (cl-defmethod config-persistent-unpersist ((this config-persistent) vals)
-  "Persist an object."
+  "Set the slot data of THIS instance with data given in VALS as `pslots'."
   (with-slots (pslots) this
     (->> pslots
 	 (-map (lambda (slot)
@@ -128,8 +135,9 @@ create unerpsist \(optionally) children classes and slots."
 		   (setf (slot-value this slot) val)))))))
 
 (cl-defmethod config-persistent-unpersist ((vals list) &optional obj)
-  "Restore the objects state from VALS, which has a symbols
-`class' and `slots'."
+  "Restore the objects state from VALS.
+VALS has has a symbols `class' and `slots'.
+OBJ is recursively invoked with this method."
   (let* ((class (cdr (assq 'class vals)))
 	 (slots (cdr (assq 'slots vals)))
 	 (obj (if obj
@@ -142,36 +150,27 @@ create unerpsist \(optionally) children classes and slots."
     obj))
 
 (cl-defmethod config-persistent-reset ((this config-persistent))
-  "Reset all persistable slots to initial state.
+  "Reset all persistable slots in THIS to initial state.
 This implementation sets all slots to nil."
   (with-slots (pslots) this
     (dolist (slotsym pslots)
       (setf (slot-value this slotsym) nil))))
 
-(cl-defmethod object-print-fields ((this config-persistent)) nil)
-
-(cl-defmethod object-format ((this config-persistent))
-  (slot-value this 'object-name))
-
-(cl-defmethod object-print ((this config-persistent) &rest strings)
+(cl-defmethod eieio-object-name-string ((this config-persistent))
   "Return a string as a representation of the in memory instance of THIS."
-  (cl-flet* ((format-obj
-	      (slot)
-	      (let* ((obj (slot-value this slot))
-		     (objs (with-temp-buffer
-			     (cl-print-object obj (current-buffer)))))
-		(format "%S %s"
-			slot
-			(cond ((eieio-object-p obj) objs)
-			      ((stringp obj) (format "'%s'" obj))
-			      (obj))))))
-    (let ((fields (object-print-fields this)))
-      (apply #'cl-call-next-method this
-      	     (concat (if fields " ")
-      		     (mapconcat #'format-obj
-      				fields
-      				" "))
-      	     strings))))
+  (with-slots (pslots) this
+    (->> pslots
+	 (cl-remove 'object-name)
+	 (-map #'(lambda (slot)
+		   (let ((val (slot-value this slot)))
+		     (->> (cond ((stringp val) val)
+				(t (prin1-to-string val)))
+			  (format "%S=%s" slot)))))
+	 ((lambda (slots)
+	    (let ((slot-str (mapconcat #'identity slots " ")))
+	      (if (> (length slot-str) 70)
+		  (format "|slots|=%d" (length slot-str))
+		(concat "slots=[" slot-str "]"))))))))
 
 
 (defclass config-persistable (config-persistent)
@@ -180,10 +179,12 @@ This implementation sets all slots to nil."
 	 :type (or null string)
 	 :documentation "The file to persist the state of the object."))
   :method-invocation-order :c3
-  :documentation "Subclasses that can persist to a file.")
+  :documentation "Subclasses that can persist to a file.
+Note this class was written before `eieio-persistent', which might be a better
+class to extend over this class.")
 
 (cl-defmethod config-persistable-save ((this config-persistable))
-  "Persist manager and compiler configuration."
+  "Persist manager and compiler configuration using THIS instant."
   (with-slots (file) this
     (when file
       (let ((save-class-name (->> this eieio-object-class eieio-class-name))
@@ -200,7 +201,7 @@ This implementation sets all slots to nil."
 	(message "Wrote %s" file)))))
 
 (cl-defmethod config-persistable-load ((this config-persistable))
-  "Restore the state of the persistable object from FILE."
+  "Restore the state of THIS instance persistable object."
   (with-slots (file) this
     (let ((file (expand-file-name file)))
       (if (file-exists-p file)
@@ -227,26 +228,32 @@ The description of this entry, used in `config-manager-list-entries-buffer'.")
   :documentation "Abstract class for all configurable entries.")
 
 (cl-defmethod config-entry-name ((this config-entry))
+  "Return the entry name of THIS instance."
   (slot-value this 'object-name))
 
 (cl-defmethod config-entry-set-name ((this config-entry) name)
   "Set the name of the entry to NAME.
 
 NAME's is stripped of properties since it might be fontified when
-generated the buffer in `config-manage-mode'."
+generated the buffer in `config-manage-mode'.
+THIS is the class instance."
   (let ((name (substring-no-properties name)))
     (setf (slot-value this 'object-name) name)))
 
 (cl-defmethod config-entry-save ((this config-entry))
-  "Save the current entry configuration."
+  "Save the current entry configuration.
+THIS is the class instance."
   nil)
 
 (cl-defmethod config-entry-restore ((this config-entry))
-  "Restore the current entry configuration."
+  "Restore the current entry configuration.
+THIS is the class instance."
   nil)
 
 (cl-defmethod config-persistent-doc ((this config-entry) level)
-  "Write compiler documentation to the current buffer."
+  "Write compiler documentation to the current buffer.
+LEVEL is the recursion level, which is used for formatting.
+THIS is the class instance."
   (with-slots (description) this
     (let ((doc (-> (eieio-object-class this)
 		   cl--find-class
@@ -267,19 +274,21 @@ generated the buffer in `config-manage-mode'."
 	  (insert (format "%s " (make-string level ?#))))
       (insert (format "%s\n\n%s\n" description doc)))))
 
+
+
 
 ;; config manager
 
-(defconst config-manager-list-col-space 4
+(defconst config-manage-base-list-col-space 4
   "Space between columns.")
 
-(defconst config-manager-status-defs
+(defconst config-manage-base-status-defs
   '((alive . " ")
     (to-delete . "D")
     (to-show . "S"))
   "Enumeration of status for buffers in `config-manager-list-entries'.")
 
-(defun config-manager-insert-at-position (seq elt pos)
+(defun config-manage-base-insert-at-position (seq elt pos)
   "Return SEQ with ELT inserted at position POS."
   (append (cl-subseq seq 0 pos)
 	  (list elt)
@@ -405,11 +414,14 @@ CRITERIA is:
 	(error "No entry exists that satisfies criteria `%S'" criteria))
     entry))
 
-(cl-defmethod config-manager--entries ((this config-manager)
-				       &optional include-fn exclude-fn sort-form)
+(cl-defmethod config-manager--entries ((this config-manager) &optional
+				       include-fn exclude-fn sort-form)
   "Return entries that match INCLUDE-FN and don't match EXCLUDE-FN.
 Entries returned are only entries contained in this instance of the
 `config-manager'.
+
+Both INCLUDE-FN and EXCLUDE-FN take an instance of `config-entry' as a
+singleton parameter.
 
 Sorting on the returned entries are done when SORT-FORM is non-nil.  Any
 sorting is only done on the returned set of entries and doesn't change any
@@ -478,7 +490,7 @@ THIS is the instance."
 			      method)))
 	  (car entries)))))))
 
-(defun config-manager-iterate-name (name names)
+(defun config-manage-base-iterate-name (name names)
   "Create a unique NAME from existing NAMES by iterating FORM<N> integer.
 
 where N is an integer.
@@ -500,7 +512,7 @@ This is the typical unique name (buffers, files etc) creation."
 	name
       (concat name "<" (-> idx prin1-to-string) ">"))))
 
-(cl-defmethod config-manager-add-entry ((this config-manager) &optional slots)
+(cl-defmethod config-manage-base-add-entry ((this config-manager) &optional slots)
   "Add and optionally create first a new entry in THIS manager.
 SLOTS, used to create the new entry that is added."
   (let* ((entry (config-manager-new-entry this slots))
@@ -602,7 +614,7 @@ THIS is the instance."
 			     config-entry-status
 			   (make-hash-table :test 'equal)))
 	   (name-len (get-max #'config-entry-name))
-	   (col-space config-manager-list-col-space)
+	   (col-space config-manage-base-list-col-space)
 	   (name-len (or name-len col-space))
 	   (headers (slot-value this 'list-header-fields))
 	   format-meta)
@@ -626,7 +638,7 @@ THIS is the instance."
 	(let ((name (config-entry-name entry))
 	      (status (cdr (assq (gethash (config-entry-name entry)
 					  entry-status)
-				 config-manager-status-defs))))
+				 config-manage-base-status-defs))))
 	  (put-text-property 0 (length name) 'mouse-face 'highlight name)
 	  (insert (apply #'format format-meta
 			 (append (list status name
@@ -645,7 +657,7 @@ from the user"
     (if auto-generate-p
 	def
       (setq prompt (or prompt (capitalize (config-manager-name this))))
-      (setq prompt (choice-program-default-prompt prompt def))
+      (setq prompt (choice-program-complete-default-prompt prompt def))
       (setq name (read-string prompt nil nil def))
       (if (= 0 (length name)) (setq name nil))
       name)))
@@ -676,7 +688,7 @@ The buffer is set to `markdown-mode' if library is available."
 
 
 ;;; mode
-(defun config-manage-mode-refresh ()
+(defun config-manage-base-mode-refresh ()
   "Refresh the entry listing buffer."
   (interactive)
   (config-manage-mode-assert)
@@ -689,7 +701,7 @@ The buffer is set to `markdown-mode' if library is available."
     (goto-char (point-min))
     (forward-line line)))
 
-(defun config-manage-refresh-windows ()
+(defun config-manage-base-refresh-windows ()
   "Refresh config entries list buffer."
   (->> (window-list)
        (-map (lambda (win)

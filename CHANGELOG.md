@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 ## [Unreleased]
+
 ### Changed
 - Upgraded to Emacs [zenbuild].
 - Compat with recent *flycheck* and `package-lint`.
 - Minor bug fixes.
+
+### Removed
+- Unused function `buffer-manager-display-given-entries`.
 
 
 ## [0.10] - 2019-06-20

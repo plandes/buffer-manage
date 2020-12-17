@@ -1,10 +1,12 @@
-;;; config-manage-mode.el --- manage abstract configurations
+;;; config-manage-mode.el --- manage abstract configurations  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: configuration settings persistable
+;; URL: https://github.com/plandes/buffer-manage
+;; Package-Version: 0
 
 ;; This file is not part of GNU Emacs.
 
@@ -48,7 +50,7 @@
 
 ;;; mode
 (defcustom config-manage-highlight t
-  "Whether or not to hightlight buffer using `config-manager-list-entries-buffer'."
+  "Whether to hightlight buffer using `config-manager-list-entries-buffer'."
   :group 'config-manage
   :type 'boolean)
 
@@ -83,9 +85,11 @@
   "Face name to use for working directories.")
 
 (defvar config-manage-font-lock-keywords
-  `((,(format "^.\\{%d\\}\\(.*?\\)[ \t]+.*$" (1+ config-manager-list-col-space))
+  `((,(format "^.\\{%d\\}\\(.*?\\)[ \t]+.*$"
+	      (1+ config-manage-base-list-col-space))
      1 config-manage-font-lock-name-face t)
-    (,(format "^.\\{%d\\}.*?[ \t]+\\(.*\\)$" (1+ config-manager-list-col-space))
+    (,(format "^.\\{%d\\}.*?[ \t]+\\(.*\\)$"
+	      (1+ config-manage-base-list-col-space))
      1 config-manage-font-lock-desc-face t)
     ("^\\([- \t]+\\)$" 1 config-manage-font-lock-headers-face t))
   "Additional expressions to highlight in config manage mode.")
@@ -106,7 +110,7 @@
   (save-excursion
     (beginning-of-line)
     (forward-char (+ (length (cdar config-manager-status-defs))
-		     config-manager-list-col-space))
+		     config-manage-base-list-col-space))
     (if (looking-at "\\(.+?\\)[ \t]")
 	(match-string-no-properties 1))))
 

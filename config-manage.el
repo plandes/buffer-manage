@@ -1,10 +1,13 @@
-;;; config-manage.el --- manage abstract configurations
+;;; config-manage.el --- Manage abstract configurations  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
-;; Keywords: configuration settings persistable
+;; Keywords: internal maint
+;; URL: https://github.com/plandes/buffer-manage
+;; Package-Requires: ((emacs "26"))
+;; Package-Version: 0
 
 ;; This file is not part of GNU Emacs.
 
@@ -40,6 +43,11 @@
 (require 'config-manage-base)
 (require 'config-manage-prop)
 (require 'config-manage-mode)
+
+(defalias 'config-manager-iterate-name 'config-manage-base-iterate-name)
+(defalias 'config-manager-add-entry 'config-manage-base-add-entry)
+(defalias 'config-manage-mode-refresh 'config-manage-base-mode-refresh)
+(defalias 'config-manage-refresh-windows 'config-manage-base-refresh-windows)
 
 (provide 'config-manage)
 

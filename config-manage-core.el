@@ -1,10 +1,12 @@
-;;; config-manage-core.el --- configuration management core
+;;; config-manage-core.el --- configuration management core  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: configuration settings persistable
+;; URL: https://github.com/plandes/buffer-manage
+;; Package-Version: 0
 
 ;; This file is not part of GNU Emacs.
 

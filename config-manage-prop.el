@@ -1,10 +1,12 @@
-;;; config-manage-prop.el --- property based configuration
+;;; config-manage-prop.el --- property based configuration  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: configuration settings persistable
+;; URL: https://github.com/plandes/buffer-manage
+;; Package-Version: 0
 
 ;; This file is not part of GNU Emacs.
 
@@ -79,12 +81,6 @@ The meta data property of a `config-prop-entry', which persists as a slot.")
   "Return the name of the property.
 THIS is the instance."
   (slot-value this 'object-name))
-
-(cl-defmethod object-print ((this config-prop) &rest strings)
-  (with-slots (object-name order) this
-    (apply #'cl-call-next-method this
-	   (format ": %s (%d)" object-name order)
-	   strings)))
 
 (cl-defmethod config-prop-default-input ((this config-prop))
   "Return the default string value for the default when prompting user input.
@@ -400,17 +396,6 @@ since this class sets :pslots in the `config-persistent' subclass.")
 		 (let ((val (->> (slot-value this slot)
 				 (config-persistent-persist-value this))))
 		   (cons slot val)))))))
-
-(cl-defmethod object-print ((this config-prop-entry) &rest strings)
-  (apply #'cl-call-next-method this
-	 (concat ", props: ("
-		 (mapconcat #'(lambda (obj)
-				(with-temp-buffer
-				  (cl-print-object obj (current-buffer))))
-			    (slot-value this 'props)
-			    ", ")
-		 ")")
-	 strings))
 
 (cl-defmethod config-prop-save-config ((this config-prop-entry))
   "Tell the compiler manager to persist the configuration of all compilers.

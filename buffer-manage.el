@@ -1,13 +1,13 @@
-;;; buffer-manage.el --- manage buffers
+;;; buffer-manage.el --- Manage buffers  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015 - 2020 Paul Landes
 
 ;; Version: 0.11
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
-;; Keywords: interactive buffer management
+;; Keywords: internal maint
 ;; URL: https://github.com/plandes/buffer-manage
-;; Package-Requires: ((emacs "26") (choice-program "0.10") (dash "2.13.0"))
+;; Package-Requires: ((emacs "26") (choice-program "0.11") (dash "2.13.0"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -33,8 +33,9 @@
 ;; process that requires multiple buffers.
 
 ;; The library includes support for:
-;; * A major mode and buffer for listing, switching, and organizing multiple Emacs
-;;   buffers.
+
+;; * A major mode and buffer for listing, switching, and organizing multiple
+;;   Emacs buffers.
 ;; * Fast switching with customized key bindings through the customize framework.
 ;; * Switch between managers providing the same key bindings for buffer entries
 ;;   with the same key bindings for creation, switching and managing.
@@ -59,8 +60,14 @@
   :group 'buffer-manage
   :prefix "buffer-manage-")
 
-;;; key bindings
+(defvar buffer-manage-current-buffer (current-buffer)
+  "The current buffer used by `buffer-manage-post-command-hook'.
+This variable is used to keep track of switching/entering the next buffer
+entry.")
+
+
 
+;;; key bindings
 (defcustom buffer-manage-key-bindings
   '((nil (("switch" nil "C-x C-h")
 	  ("list" nil "C-<tab>")
@@ -155,9 +162,6 @@ it and let the garbage collector get it."
 	(delete-frame (window-frame (selected-window))))
     (kill-buffer (buffer-entry-buffer this))))
 
-(cl-defmethod object-print-fields ((this buffer-entry))
-  (append (cl-call-next-method) '(:buffer :kill-frame-p)))
-
 (cl-defmethod config-entry-description ((this buffer-entry))
   "Get the description of THIS configuration entry."
   (with-slots (buffer) this
@@ -232,12 +236,13 @@ Used for history when reading user input when switching to other buffers."))
   :documentation "Manages buffer entries.")
 
 (cl-defmethod initialize-instance ((this buffer-manager) &optional slots)
+  "Initialize instance THIS with arguments SLOTS."
   (setq slots (plist-put slots :list-header-fields
 			 '("C" "Name" "Working Directory")))
   (cl-call-next-method this slots))
 
 (cl-defmethod config-persistent-destruct ((this buffer-manager))
-  "Dispose by disping all buffer entries.
+  "Dispose by disping all buffer entries of THIS buffer manager.
 Don't use this instance after this method is called.  Instead, don't reference
 it and let the garbage collector get it."
   (with-slots (entries) this
@@ -253,7 +258,18 @@ it and let the garbage collector get it."
 					   name start-dir new-frame-p switchp)
   "Create a new entry instance and return its name.
 If NAME is non-nil, use it as the name of the buffer entry,
-otherwise, create a use a auto generated name."
+otherwise, create a use a auto generated name.
+
+START-DIR is the initial directory to read from the user input that will be
+  used for the `default-directory' of the new `buffer-entry' instance.
+
+NEW-FRAME-P, if non-nil, creates a new frame for the entry, and kills that
+  frame when it is destroyed.
+
+SWITCHP, if non-nil, switch to the new entry after created with
+  `buffer-manager-switch'.
+
+THIS is the object instance."
   (let* ((default-directory (file-name-as-directory
 			     (or start-dir
 				 (buffer-manager-start-dir this)
@@ -275,9 +291,25 @@ otherwise, create a use a auto generated name."
 (cl-defmethod buffer-manager-display-entries ((this buffer-manager)
 					      &optional include-fn exclude-fn
 					      other-buffers sort-form)
+  "Display buffers from an entries for THIS buffer manager.
+
+The buffers selected from entries are those that matches INCLUDE-FN and don't
+match EXCLUDE-FN.  These buffers are tiled across the current frame.
+
+Both INCLUDE-FN and EXCLUDE-FN take an instance of `config-entry' as a
+singleton parameter.
+
+OTHER-BUFFERS is a list of other buffers to consider for displaying.
+
+Sorting on the returned entries are done when SORT-FORM is non-nil.  Any
+sorting is only done on the returned set of entries and doesn't change any
+of the object's internal state.  Sorting is done based on SORT-FORM's value:
+ - symbol 'lexical: sort lexically based on the config entry's name
+ - function: sort using SORT-FORM as a predicate \(see `sort').
+
+See `config-manager--entries'."
   (let* ((entries (config-manager--entries this include-fn exclude-fn sort-form))
-	 (bufs (append other-buffers
-		       (mapcar 'buffer-entry-buffer entries))))
+	 (bufs (append other-buffers (mapcar #'buffer-entry-buffer entries))))
     (when bufs
       (let* ((wins (length bufs))
 	     (win-height (/ (window-body-height) wins)))
@@ -292,10 +324,11 @@ otherwise, create a use a auto generated name."
 (cl-defmethod config-manager-current-instance ((this buffer-manager)
 					       &optional assertp)
   "Get the current buffer entry instance in the current buffer.
-Return `nil' if this isn't an entry buffer that belongs to this
+Return nil if this isn't an entry buffer that belongs to this
 `buffer-manager' instance.
 
-ASSERTP, if non-nil, raise an error if there is no current entry."
+ASSERTP, if non-nil, raise an error if there is no current entry.
+THIS is the object instance."
   (with-slots (entries) this
     (if (and (boundp 'buffer-entry-instance)
 	     (member buffer-entry-instance entries))
@@ -304,7 +337,8 @@ ASSERTP, if non-nil, raise an error if there is no current entry."
 	(error "Missing buffer entry or wrong buffer")))))
 
 (cl-defmethod config-manager-entry-cycle ((this buffer-manager))
-  "Override to provide better support for buffers across multi-window frames."
+  "Override to provide better support for buffers across multi-window frames.
+THIS is the object instance."
   (cl-flet* ((current-fn
 	      (entry)
 	      (eq (config-manager-current-instance this) entry)))
@@ -364,17 +398,9 @@ ASSERTP, if non-nil, raise an error if there is no current entry."
 				method)))
 	    (and (not include-frame-wins) (car entries)))))))))
 
-(cl-defmethod buffer-manager-display-given-entries ((this buffer-manager)
-						    entries &optional
-						    other-buffers sort-form)
-  (cl-flet ((include-fn
-	     (entry)
-	     (memq entry entries)))
-    (buffer-manager-display-entries this #'include-fn
-				    nil other-buffers sort-form)))
-
 (cl-defmethod buffer-manager-cleanup ((this buffer-manager))
-  "Remove all dead buffer entries."
+  "Remove all dead buffer entries.
+THIS is the object instance."
   (condition-case err
       (with-slots (entries) this
 	(setq entries
@@ -410,7 +436,15 @@ MANAGER the `buffer-manager' singleton instance."
 
 (cl-defmethod buffer-manager-window-entries ((this buffer-manager)
 					     &optional exclude-fn)
-  "Return `buffer-entry' instances contained in windows for this frame."
+  "Return `buffer-entry' instances contained in windows for this frame.
+
+The entries selected are those that don't match EXCLUDE-FN.  These buffers are
+tiled across the current frame.  The EXCLUDE-FN function takes an instance of
+`config-entry' as a singleton parameter.
+
+THIS is the object instance.
+
+See `config-manager--entries'."
   (config-manager--entries this
 			  (lambda (entry)
 			    (cl-block inc-fn
@@ -420,8 +454,6 @@ MANAGER the `buffer-manager' singleton instance."
 					  (eq buffer-entry-instance entry))
 				     (cl-return-from inc-fn t))))))
 			  exclude-fn))
-
-(defvar buffer-manage-current-buffer (current-buffer))
 
 (defun buffer-manage-post-command-hook ()
   "Switch/enter next buffer entry."
@@ -435,6 +467,8 @@ MANAGER the `buffer-manager' singleton instance."
 				       buffer-entry-instance)))))
 
 (cl-defmethod buffer-manager-enter-buffer ((this buffer-manager) entry)
+  "Book keeping to to reorder entries to palce ENTRY after cycling.
+THIS is the object instance."
   (with-slots (last-switched-to) this
     (setq last-switched-to entry)
     (config-manager-cycle-entries this entry)))
@@ -446,8 +480,11 @@ MANAGER the `buffer-manager' singleton instance."
 If the buffer doesn't have the point at the prompt, then create an error.
 
 SEND-COMMAND-P, if non-nil, actually execute the command inserted as if the
-user hit ENTER.
-NO-WINDOW-SET-POINT-P, if non-nil don't reset the window point."
+  user hit ENTER.
+
+NO-WINDOW-SET-POINT-P, if non-nil don't reset the window point.
+
+THIS is the object instance."
   (let ((buf (buffer-entry-buffer this)))
     (save-match-data
       (with-current-buffer buf
@@ -460,20 +497,28 @@ NO-WINDOW-SET-POINT-P, if non-nil don't reset the window point."
 	  (set-window-point (get-buffer-window buf) (point-max)))))))
 
 (cl-defmethod config-manager-activate ((this buffer-manager) criteria)
+  "Switch to a `buffer-entry' in THIS manager.
+
+CRITERIA, see the `config-manager' method `config-manager-activate'."
   (cl-call-next-method this criteria)
   (buffer-manager-switch this 'first))
 
 (cl-defmethod buffer-manager-switch ((this buffer-manager) criteria
 				     &optional new-frame-p window-cfg)
   "Switch to a buffer entry.
+
 If the buffer CRITERIA is the name of the buffer to switch to, go to that
 buffer, otherwise, create a new one with that name and switch to it.
 Returns the buffer entry we switched to based on CRITERIA \(see
 `buffer-manager-entry').
-NEW-FRAME-P, if non-`nil', create a new frame and switch to the new buffer in
-it.
-WINDOW-CFG, if non-`nil', split the window based on the value, which is
-currently just the symbol `split'."
+
+NEW-FRAME-P, if non-nil, create a new frame and switch to the new buffer in
+  it.
+
+WINDOW-CFG, if non-nil, split the window based on the value, which is
+  currently just the symbol `split'.
+
+THIS is the object instance."
   (let ((entry (or (config-manager-entry this criteria)
 		   (config-manager-insert-entry this))))
     (if new-frame-p
@@ -496,19 +541,20 @@ currently just the symbol `split'."
 					default name-fn)
   "Read a buffer entry name from the user.
 
-PRMOPT is given to the user, or defaults to the
-`config-manager-name'.  Don't add any trainling `: ' type
-characters as `default' syntax is added.
+PROMPT is given to the user, or defaults to the `config-manager-name'.  Don't
+  add any trainling `: ' type characters as `default' syntax is added.
 
-REQUIRE-MATCH, if non-`nil' don't allow the user to produce a name that
-doesn't already exist as a entry name for this manager.
+REQUIRE-MATCH, if non-nil don't allow the user to produce a name that doesn't
+  already exist as a entry name for this manager.
 
-DEFAULT, if non-`nil' use as the default instead of next buffer entry name.
-Otherwise the default is selected an entry that isn't currently in any window
-in the current frame.
+DEFAULT, if non-nil use as the default instead of next buffer entry name.
+  Otherwise the default is selected an entry that isn't currently in any window
+  in the current frame.
 
-NAME-FN, if non-`nil' use to create a name when prompting the user for each
-buffer.  The default is `config-entry-name'."
+NAME-FN, if non-nil use to create a name when prompting the user for each
+  buffer.  The default is `config-entry-name'.
+
+THIS is the object instance."
   (setq name-fn (or name-fn 'config-entry-name))
   (let ((entries (config-manager--entries this))
 	def-entry def name-map)
@@ -521,7 +567,7 @@ buffer.  The default is `config-entry-name'."
 			      (t (config-manager-entry this 'cycle)))
 	      def (or default (if def-entry (funcall name-fn def-entry))))))
     (setq prompt (or prompt (capitalize (config-manager-name this))))
-    (setq prompt (choice-program-default-prompt prompt def))
+    (setq prompt (choice-program-complete-default-prompt prompt def))
     (setq name-map (mapcar (lambda (entry)
 			     (cons (funcall name-fn entry)
 				   (config-entry-name entry)))
@@ -543,6 +589,15 @@ buffer.  The default is `config-entry-name'."
 
 (cl-defmethod buffer-manager-interactive-functions ((this buffer-manager)
 						    singleton-variable-sym)
+  "Create, evaluate and compile new Emacs Lisp user functions.
+This is called by `buffer-manager-create-interactive-functions' to creates user
+interactive functions as an entry point and access to the THIS instance's
+functionality.
+
+SINGLETON-VARIABLE-SYM is an interned symbol that is bound to the singleton
+  class instance that points to THIS.
+
+See `buffer-manager-create-interactive-functions'."
   (let ((cname (config-manager-entry-default-name this)))
     `(("new" (defun ,(intern (format "%s-new" cname))
 		 (&optional name start-dir new-frame-p)
@@ -550,12 +605,12 @@ buffer.  The default is `config-entry-name'."
 When invoked with \\[universal-argument] a new NAME for the %s is prompted
 to the user.  If the name of the %s doesn't yet exist, it will be created.
 
-START-DIR, if non-`nil', use this directory for the buffer
-process to start in instead of the `buffer-manager' instance's
-`start-dir' slot value.
+START-DIR, if non-nil, use this directory for the buffer
+  process to start in instead of the `buffer-manager' instance's
+  `start-dir' slot value.
 
-NEW-FRAME-P, if non-`nil', create a new frame and switch to the
-new buffer in it."
+NEW-FRAME-P, if non-nil, create a new frame and switch to the
+  new buffer in it."
 			(config-manager-name this)
 			(config-manager-name this)
 			(config-manager-name this))
@@ -641,6 +696,9 @@ In this buffer, you can rename and go to %ss"
 			 (buffer-manager-display-entries this)))))))
 
 (cl-defmethod buffer-manager-bind-interactive-functions ((this buffer-manager))
+  "This binds the keys to the user functions for THIS buffer manager.
+
+See `buffer-manager-create-interactive-functions'."
   (let ((funcs (buffer-manager-interactive-functions this 'none))
 	(bindings (car (delq nil (mapcar (lambda (entry)
 					   (if (null (car entry))
@@ -662,10 +720,34 @@ In this buffer, you can rename and go to %ss"
 		 (or (cl-second binding) 'global))))))
 
 (cl-defmethod buffer-manager-key-bindings ((this buffer-manager))
+  "Return the key bindings for THIS buffer manager.
+
+This returns a list of tuples having the form:
+  (<STRING FUNCTION NAME> <MODE MAP> <KEYBOARD MACRO>
+where:
+  STRING FUNCTION NAME is the name prefixed by the manager name
+  MODE MAP is the mode map (i.e. `shell-mode-map')
+  KEYBOARD MACRO is a string read by `read-kbd-macro'
+
+See `buffer-manager-create-interactive-functions'.
+See overriden method: https://github.com/plandes/bshell/blob/master/bshell.el"
   nil)
 
-(cl-defmethod buffer-manager-create-interactive-functions ((this buffer-manager)
-							   singleton-variable-sym)
+(cl-defmethod buffer-manager-create-interactive-functions
+  ((this buffer-manager) singleton-variable-sym)
+  "Create, evaluate and compile Emacs Lisp user functions and bindings.
+
+This does the following:
+
+  1. Calls `buffer-manager-interactive-functions' to create the user functions.
+  2. Calls `buffer-manager-key-bindings' to get the key bindings.
+  3. Calls `buffer-manager-bind-interactive-functions' to bind the keys to the
+     functions.
+
+SINGLETON-VARIABLE-SYM is an interned symbol that is bound to the singleton
+  class instance that points to THIS.
+
+THIS the singleton class instance."
   (add-to-list 'buffer-manage-remap-instances singleton-variable-sym)
   (let ((defs (mapcar 'cl-second
 		      (buffer-manager-interactive-functions
@@ -704,7 +786,7 @@ USE-LAST-DEFAULT-P, switch to the previous setting if non-nil."
 		second)
 	    (let* ((def (or second
 			    (car buffer-manager-read-bind-choices-history)))
-		   (prompt (choice-program-default-prompt
+		   (prompt (choice-program-complete-default-prompt
 			    "Buffer manager bind" def)))
 	      (completing-read
 	       prompt (mapcar 'car choices) nil t
