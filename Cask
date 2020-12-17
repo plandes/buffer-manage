@@ -1,9 +1,9 @@
 ;; -*- emacs-lisp -*-
 (source gnu)
-(source melpa)
+(source melpa-stable)
 
-(depends-on "dash")
-(depends-on "choice-program" "0.12")
+(depends-on "dash" "2.17.0")
+(depends-on "choice-program" "0.13")
 
 (package-file "buffer-manage.el")
 

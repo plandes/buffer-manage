@@ -7,7 +7,7 @@
 ;; Maintainer: Paul Landes
 ;; Keywords: internal maint
 ;; URL: https://github.com/plandes/buffer-manage
-;; Package-Requires: ((emacs "26.1") (choice-program "0.12") (dash "2.13.0"))
+;; Package-Requires: ((emacs "26.1") (choice-program "0.13") (dash "2.17.0"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -130,9 +130,7 @@ process dies.")
 (cl-defmethod initialize-instance ((this buffer-entry) &optional slots)
   "Initialize THIS instance using SLOTS as initial values."
   (cl-call-next-method this slots)
-  (let ((win-cfg (current-window-configuration))
-	name (config-entry-name this)
-	new-buf)
+  (let ((win-cfg (current-window-configuration)))
     (with-slots (sentinel manager) this
       (unwind-protect
 	  (let ((new-buf (buffer-entry-create-buffer this)))
