@@ -7,7 +7,7 @@
 ;; Maintainer: Paul Landes
 ;; Keywords: internal maint
 ;; URL: https://github.com/plandes/buffer-manage
-;; Package-Requires: ((emacs "26") (choice-program "0.11") (dash "2.13.0"))
+;; Package-Requires: ((emacs "26.1") (choice-program "0.12") (dash "2.13.0"))
 
 ;; This file is not part of GNU Emacs.
 

@@ -39,7 +39,11 @@
 
 ;;; Code:
 
-(require 'config-manage-core)
+(require 'config-manage-declare)
+
+(defalias 'config-manage-mode-assert 'config-manage-declare-mode-assert)
+(defalias 'config-manage-slots 'config-manage-declare-slots)
+
 (require 'config-manage-base)
 (require 'config-manage-prop)
 (require 'config-manage-mode)

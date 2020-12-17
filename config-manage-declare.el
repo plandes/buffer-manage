@@ -1,11 +1,12 @@
-;;; config-manage-core.el --- configuration management core  -*- lexical-binding: t; -*-
+;;; config-manage-declare.el --- Configuration management core  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
-;; Keywords: configuration settings persistable
+;; Keywords: internal maint
 ;; URL: https://github.com/plandes/buffer-manage
+;; Package-Requires: ((emacs "26.0"))
 ;; Package-Version: 0
 
 ;; This file is not part of GNU Emacs.
@@ -30,6 +31,7 @@
 ;; This contains core functions for the configuration management system.
 
 ;;; Code:
+
 
 (require 'eieio)
 (require 'eieio-core)
@@ -74,7 +76,7 @@ This is used in the compiler module libraries to silence the compiler in
 		   (eval `(defvar ,sym nil))))
 	     (quote ,vars))))
 
-(defun config-manage-mode-assert (&optional no-error-p this)
+(defun config-manage-declare-mode-assert (&optional no-error-p this)
   "Throw an error if not in `config-manage-mode' when NO-ERROR-P is nil.
 
 Pattern match on THIS if it is given and this is a `config-manager-mode'."
@@ -90,7 +92,7 @@ Pattern match on THIS if it is given and this is a `config-manager-mode'."
     ("config-manage-declare-methods" . font-lock-keyword-face)
     ("config-manage-declare-variables" . font-lock-keyword-face)))
 
-(defun config-manage-slots (class)
+(defun config-manage-declare-slots (class)
   "Return an alist of slots for EIEIO CLASS.
 
 This is a helper function and probably shouldn't be trusted to work long term
@@ -110,6 +112,6 @@ since it uses code ripped off from EIEIO guts."
   "Un-implemented method config-manage method"
   'cl-no-applicable-method)
 
-(provide 'config-manage-core)
+(provide 'config-manage-declare)
 
-;;; config-manage-core.el ends here
+;;; config-manage-declare.el ends here

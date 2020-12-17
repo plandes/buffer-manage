@@ -40,7 +40,7 @@
 (require 'eieio)
 (require 'eieio-base)
 (require 'choice-program)
-(require 'config-manage-core)
+(require 'config-manage-declare)
 
 (config-manage-declare-variables config-manager-instance)
 (defvar config-entry-status)

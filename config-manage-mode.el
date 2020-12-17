@@ -1,11 +1,12 @@
-;;; config-manage-mode.el --- manage abstract configurations  -*- lexical-binding: t; -*-
+;;; config-manage-mode.el --- Manage abstract configurations  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
-;; Keywords: configuration settings persistable
+;; Keywords: internal maint
 ;; URL: https://github.com/plandes/buffer-manage
+;; Package-Requires: ((emacs "26"))
 ;; Package-Version: 0
 
 ;; This file is not part of GNU Emacs.
@@ -35,7 +36,7 @@
 
 
 (require 'dash)
-(require 'config-manage-core)
+(require 'config-manage-declare)
 (require 'config-manage-base)
 (require 'config-manage-prop)
 

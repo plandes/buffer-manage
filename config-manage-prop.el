@@ -1,11 +1,12 @@
-;;; config-manage-prop.el --- property based configuration  -*- lexical-binding: t; -*-
+;;; config-manage-prop.el --- Property based configuration  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017 - 2020 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
-;; Keywords: configuration settings persistable
+;; Keywords: internal maint
 ;; URL: https://github.com/plandes/buffer-manage
+;; Package-Requires: ((emacs "26.1"))
 ;; Package-Version: 0
 
 ;; This file is not part of GNU Emacs.
