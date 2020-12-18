@@ -2,7 +2,7 @@
 
 [![MELPA badge][melpa-badge]][melpa-link]
 [![MELPA stable badge][melpa-stable-badge]][melpa-stable-link]
-[![Travis CI Build Status][travis-badge]][travis-link]
+[![Build Status][build-badge]][build-link]
 
 Provides support to multiple managed buffers of any kind.  This is helpful for
 using multiple inferior shells, multiple SQL session buffers or any other piped
@@ -164,5 +164,5 @@ GNU Lesser General Public License, Version 2.0
 [melpa-stable-link]: https://stable.melpa.org/#/buffer-manage
 [melpa-badge]: https://melpa.org/packages/buffer-manage-badge.svg
 [melpa-stable-badge]: https://stable.melpa.org/packages/buffer-manage-badge.svg
-[travis-link]: https://travis-ci.org/plandes/buffer-manage
-[travis-badge]: https://travis-ci.org/plandes/buffer-manage.svg?branch=master
+[build-badge]: https://github.com/plandes/buffer-manage/workflows/CI/badge.svg
+[build-link]: https://github.com/plandes/buffer-manage/actions
