@@ -574,7 +574,7 @@ THIS is the object instance."
 	      (setq def-entry (cond ((= 1 (length entries)) (car entries))
 				    (t (config-manager-entry this 'cycle)))
 		    def (or default (if def-entry (funcall name-fn def-entry)))))
-	  (setq include-frame-wins :old-include-frame-wins))))
+	  (setq include-frame-wins old-include-frame-wins))))
     (setq prompt (or prompt (capitalize (config-manager-name this))))
     (setq prompt (choice-program-complete-default-prompt prompt def))
     (setq name-map (mapcar (lambda (entry)
