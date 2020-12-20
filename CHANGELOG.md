@@ -8,10 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+
 ### Changed
 - Add back buffer switch message in `buffer-manager`.
 - Add name to `cl-print-object` output `config-persistent` (see
   `eieio-object-name-string`).
+- Fix (other) buffer selection.  Since Emacs 27 `let` forms no longer have an
+  effect on EIEIO slot values even using `with-slots`.
 
 
 ## [0.11] - 2020-12-17

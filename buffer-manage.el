@@ -560,13 +560,21 @@ THIS is the object instance."
   (let ((entries (config-manager--entries this))
 	def-entry def name-map)
     (with-slots (include-frame-wins) this
-      ;; it isn't useful to use a default based on the entry chosen by the
-      ;; normal cycle method; instead pick on the other `include-frame-windows'
-      ;; method
-      (let ((include-frame-wins (not include-frame-wins)))
-	(setq def-entry (cond ((= 1 (length entries)) (car entries))
-			      (t (config-manager-entry this 'cycle)))
-	      def (or default (if def-entry (funcall name-fn def-entry))))))
+      (let ((old-include-frame-wins include-frame-wins))
+	;; it isn't useful to use a default based on the entry chosen by the
+	;; normal cycle method; instead toggle to change what entries are
+	;; visible based on `include-frame-wins'
+	;;
+	;; `let' forms no longer (starting in 27) have an effect on slot values
+	;; even using `with-slots', so we must rebind the value, then set it
+	;; back
+	(unwind-protect
+	    (progn
+	      (setq include-frame-wins (not include-frame-wins))
+	      (setq def-entry (cond ((= 1 (length entries)) (car entries))
+				    (t (config-manager-entry this 'cycle)))
+		    def (or default (if def-entry (funcall name-fn def-entry)))))
+	  (setq include-frame-wins :old-include-frame-wins))))
     (setq prompt (or prompt (capitalize (config-manager-name this))))
     (setq prompt (choice-program-complete-default-prompt prompt def))
     (setq name-map (mapcar (lambda (entry)
