@@ -171,10 +171,11 @@ This implementation sets all slots to nil."
 				(t (prin1-to-string val)))
 			  (format "%S=%s" slot)))))
 	 (funcall #'(lambda (slots)
-		      (let ((slot-str (mapconcat #'identity slots " ")))
-			(if (> (length slot-str) 70)
-			    (format "|slots|=%d" (length slot-str))
-			  (concat "slots=[" slot-str "]"))))))))
+		      (concat (format "\"%s\" " (slot-value this 'object-name))
+			      (let ((slot-str (mapconcat #'identity slots " ")))
+				(if (> (length slot-str) 70)
+				    (format "|slots|=%d" (length slot-str))
+				  (concat "slots=[" slot-str "]")))))))))
 
 
 

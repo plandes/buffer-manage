@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Add back buffer switch message in `buffer-manager`.
+- Add name to `cl-print-object` output `config-persistent` (see
+  `eieio-object-name-string`).
+
 
 ## [0.11] - 2020-12-17
 Major refactoring: cleaned up compilation and *package-lint* warnings.

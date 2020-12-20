@@ -221,10 +221,10 @@ If `nil', the current value of `default directory' is used.")
 		       :type boolean
 		       :custom boolean
 		       :documentation "\
-When true, don't necessarily got to another entry in the frame just because
-it's visible.  One way this happens is to chose the next desired entry
-based on `cycle-method' regardeless of the last visited entry or what entries
-are in the current frame.")
+When non-nil, don't necessarily got to another entry in the frame just because
+it's visible.  One way this happens is to chose the next desired entry based on
+`cycle-method' regardeless of the last visited entry or what entries are in the
+current frame.")
    (read-history :initform (gensym "buffer-manage-read-history")
 		 :type symbol
 		 :protection :private
@@ -640,8 +640,8 @@ frame."
 							  nil t))))))
 		  (let* ((this ,singleton-variable-sym)
 			 (entry (buffer-manager-switch this (or name 'cycle))))
-		    ;;(message "Switched to `%s'" (config-entry-name entry))
-		    )))
+		    (message "Switched to `%s'" (config-entry-name entry))
+		    entry)))
       ("toggle-cycle-method"
        (defun ,(intern (format "%s-toggle-cycle-method" cname)) ()
 	 "Toggle cycle methods \(i.e. last visited vs. next buffer)."
