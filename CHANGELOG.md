@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+## [0.12] - 2020-12-20
 ### Changed
 - Add back buffer switch message in `buffer-manager`.
 - Add name to `cl-print-object` output `config-persistent` (see
@@ -87,7 +88,8 @@ First major release.
 
 
 <!-- links -->
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.11...HEAD
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.12...HEAD
+[0.12]: https://github.com/plandes/buffer-manage/compare/v0.11...v0.12
 [0.11]: https://github.com/plandes/buffer-manage/compare/v0.10...v0.11
 [0.10]: https://github.com/plandes/buffer-manage/compare/v0.9...v0.10
 [0.9]: https://github.com/plandes/buffer-manage/compare/v0.8...v0.9
