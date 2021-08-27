@@ -166,7 +166,12 @@ This implementation sets all slots to nil."
     (->> pslots
 	 (cl-remove 'object-name)
 	 (-map #'(lambda (slot)
-		   (let ((val (slot-value this slot)))
+		   (let ((val (condition-case nil
+				  (slot-value this slot)
+				(error
+				 (message "Invalid slot: %S.%s"
+					  (eieio-object-class this) slot)
+				 nil))))
 		     (->> (cond ((stringp val) val)
 				(t (prin1-to-string val)))
 			  (format "%S=%s" slot)))))
