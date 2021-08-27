@@ -49,6 +49,11 @@
 	    :initform (gensym "config-prop-history")
 	    :type symbol
 	    :documentation "The history variable for the input.")
+   (initial-value :initarg :initial-value
+		  :initform nil
+		  :documentation "\
+This will be the initial value when prompted as it is set as the single element
+in the history slot")
    (required :initarg :required
 	     :initform nil
 	     :type boolean
@@ -76,7 +81,10 @@ The meta data property of a `config-prop-entry', which persists as a slot.")
     (unless (plist-get slots elt)
       (error "Missing initarg: %S in %s" elt this)))
   (cl-call-next-method this slots)
-  (set (slot-value this 'history) nil))
+  (let ((hist-val (plist-get slots :initial-value)))
+    (when hist-val
+      (setq hist-val (list hist-val)))
+    (set (slot-value this 'history) hist-val)))
 
 (cl-defmethod config-prop-name ((this config-prop))
   "Return the name of the property.
