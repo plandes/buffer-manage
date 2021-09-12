@@ -473,17 +473,23 @@ THIS is the instance."
     (setq val (or val (config-prop-read prop)))
     (config-prop-set this prop val)))
 
-(cl-defmethod config-prop-entry-set-required ((this config-prop-entry))
-  "Set all required properties for the prop-entry.
-THIS is the instance."
-  (dolist (prop (config-prop-by-order this))
-    (let* ((name (config-prop-name prop))
-	   (val (slot-value this name))
-	   ;; minibuffer reading has odd behavior when this isn't nil
-	   (display-buffer-alist nil))
-      (when (and (null val) (slot-value prop 'required))
-	(setq val (config-prop-read prop))
-	(config-prop-set this prop val)))))
+(cl-defmethod config-prop-entry-set-required ((this config-prop-entry)
+					      &optional name)
+  "Set all required properties for the prop-entry for THIS property.
+If NAME is non-nil, only set the property with the name."
+  (let ((props (config-prop-by-order this)))
+    (when name
+      (setq props (->> props
+		       (-filter (lambda (prop)
+				  (equal name (config-prop-name prop)))))))
+    (dolist (prop props)
+      (let* ((name (config-prop-name prop))
+	     (val (slot-value this name))
+	     ;; minibuffer reading has odd behavior when this isn't nil
+	     (display-buffer-alist nil))
+	(when (and (null val) (slot-value prop 'required))
+	  (setq val (config-prop-read prop))
+	  (config-prop-set this prop val))))))
 
 (cl-defmethod config-persistent-reset ((this config-prop-entry))
   "Wipe all values for the prop-entry.
