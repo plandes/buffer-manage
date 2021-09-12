@@ -127,11 +127,7 @@ THIS is the instance."
   "Clear any state \(ie history) from the property.
 THIS is the instance"
   (with-slots (object-name history) this
-    (let ((hval (symbol-value history)))
-      (if hval
-	  (setf hval nil)
-	(message "Warning: null history value for property: %s"
-		 object-name)))))
+    (set (slot-value this 'history) nil)))
 
 (cl-defmethod config-prop-description ((this config-prop))
   "The human readable description of this property.
