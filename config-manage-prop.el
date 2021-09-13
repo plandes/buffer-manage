@@ -62,7 +62,7 @@ Whether or not the property is needed for compilation, run, or clean")
    (input-type :initarg :input-type
 	       :initform 'last
 	       :type symbol
-	       :documentation "One of last toggle.")
+	       :documentation "One of `last' or `toggle'.")
    (order :initarg :order
 	  :initform 100
 	  :type integer
@@ -306,21 +306,18 @@ The major mode to use to validate/select `config-file` buffers."))
   :method-invocation-order :c3
   :documentation "Property that prompts for a file.")
 
-(cl-defmethod config-prop-default-input ((this config-file-prop))
-  "Return nil as the default input for THIS instance."
-  (ignore this))
-
 (cl-defmethod config-prop-read ((this config-file-prop))
   "Read a config property input from the user as a file.
 THIS is the instance."
   (with-slots (history description) this
     (let* ((prompt (config-prop-prompt this))
 	   (fname (buffer-file-name))
-	   (initial (and fname (file-name-nondirectory fname))))
-      (let* ((file-name-history (symbol-value history)))
-	(prog1
-	    (read-file-name prompt nil nil t initial)
-	  (set history file-name-history))))))
+	   (default (or (config-prop-default-input this)
+			(and fname (file-name-nondirectory fname)))))
+      (let ((file (read-file-name prompt nil default t)))
+	(set (slot-value this 'history)
+	     (append (symbol-value history) (cons file nil)))
+	file))))
 
 (cl-defmethod config-prop-validate ((this config-file-prop) val)
   "Validate VAL as a file for THIS instance."
@@ -339,9 +336,12 @@ THIS is the instance."
 (cl-defmethod config-prop-read ((this config-directory-prop))
   "Read a directory from the user for THIS instance."
   (with-slots (history choices) this
-    (let ((default (config-prop-default-input this))
-	  (prompt (config-prop-prompt this)))
-      (read-directory-name prompt default nil t))))
+    (let* ((default (config-prop-default-input this))
+	   (prompt (config-prop-prompt this))
+	   (dir (read-directory-name prompt default nil t)))
+      (set (slot-value this 'history)
+	   (append (symbol-value history) (cons dir nil)))
+      dir)))
 
 
 (defclass config-eval-prop (config-prop)
@@ -482,14 +482,16 @@ If NAME is non-nil, only set the property with the name."
       (setq props (->> props
 		       (-filter (lambda (prop)
 				  (equal name (config-prop-name prop)))))))
-    (dolist (prop props)
-      (let* ((name (config-prop-name prop))
-	     (val (slot-value this name))
-	     ;; minibuffer reading has odd behavior when this isn't nil
-	     (display-buffer-alist nil))
-	(when (and (null val) (slot-value prop 'required))
-	  (setq val (config-prop-read prop))
-	  (config-prop-set this prop val))))))
+    (->> props
+	 (-map (lambda (prop)
+		 (let* ((name (config-prop-name prop))
+			(val (slot-value this name))
+			;; minibuffer reading has odd behavior when this isn't nil
+			(display-buffer-alist nil))
+		   (when (and (null val) (slot-value prop 'required))
+		     (setq val (config-prop-read prop))
+		     (config-prop-set this prop val))
+		   (cons prop val)))))))
 
 (cl-defmethod config-persistent-reset ((this config-prop-entry))
   "Wipe all values for the prop-entry.
