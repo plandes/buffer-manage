@@ -161,8 +161,12 @@ THIS is the instance."
 	      (if (search-forward "." nil t)
 		  (delete-region (point) (point-max)))
 	      (goto-char (point-min))
-	      (while (search-forward-regexp "'" nil t)
-		(replace-match "`"))
+	      (while (search-forward-regexp "`\\([a-z0-9-]+?\\)'" nil t)
+		(replace-match "`\\1`"))
+	      (goto-char (point-min))
+	      ;; line wrap indentation: not 80 col, but good enough
+	      (while (search-forward "\n" nil t)
+		(replace-match "\n    "))
 	      (buffer-string))))
     (insert (format "  * %s:%s\n" desc doc))))
 
