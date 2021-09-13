@@ -313,11 +313,11 @@ THIS is the instance."
     (let* ((prompt (config-prop-prompt this))
 	   (fname (buffer-file-name))
 	   (default (or (config-prop-default-input this)
-			(and fname (file-name-nondirectory fname)))))
-      (let ((file (read-file-name prompt nil default t)))
-	(set (slot-value this 'history)
-	     (append (symbol-value history) (cons file nil)))
-	file))))
+			(and fname (file-name-nondirectory fname))))
+	   (file-name-history (symbol-value history))
+	   (file (read-file-name prompt nil default t)))
+      (set (slot-value this 'history) (copy-tree file-name-history))
+      file)))
 
 (cl-defmethod config-prop-validate ((this config-file-prop) val)
   "Validate VAL as a file for THIS instance."
@@ -338,9 +338,9 @@ THIS is the instance."
   (with-slots (history choices) this
     (let* ((default (config-prop-default-input this))
 	   (prompt (config-prop-prompt this))
+	   (file-name-history (symbol-value history))
 	   (dir (read-directory-name prompt default nil t)))
-      (set (slot-value this 'history)
-	   (append (symbol-value history) (cons dir nil)))
+      (set (slot-value this 'history) (copy-tree file-name-history))
       dir)))
 
 
