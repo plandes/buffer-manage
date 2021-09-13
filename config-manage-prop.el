@@ -575,10 +575,10 @@ is used."
       (read-only-mode 0)
       (erase-buffer)
       (config-prop-entry-write-configuration this)
-      (read-only-mode 1)
-      (display-buffer (current-buffer))
       ;; for highlight only
       (conf-mode)
+      (read-only-mode 1)
+      (display-buffer (current-buffer))
       (current-buffer))))
 
 (provide 'config-manage-prop)
