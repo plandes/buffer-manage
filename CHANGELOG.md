@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+## [0.13] - 2021-09-13
+### Changed
+- Fix/add default support for file and directory config properties.
+- Fixed history variable handling for file and directory config properties.
+- Fixed infinite loop on missing slot error.
+
 ## [0.12] - 2020-12-20
 ### Changed
 - Add back buffer switch message in `buffer-manager`.
@@ -88,7 +94,8 @@ First major release.
 
 
 <!-- links -->
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.12...HEAD
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.13...HEAD
+[0.13]: https://github.com/plandes/buffer-manage/compare/v0.12...v0.13
 [0.12]: https://github.com/plandes/buffer-manage/compare/v0.11...v0.12
 [0.11]: https://github.com/plandes/buffer-manage/compare/v0.10...v0.11
 [0.10]: https://github.com/plandes/buffer-manage/compare/v0.9...v0.10

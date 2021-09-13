@@ -1,8 +1,8 @@
 ;;; buffer-manage.el --- Manage buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015 - 2020 Paul Landes
+;; Copyright (C) 2015 - 2021 Paul Landes
 
-;; Version: 0.12
+;; Version: 0.13
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: internal maint

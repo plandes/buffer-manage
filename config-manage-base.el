@@ -1,6 +1,6 @@
 ;;; config-manage-base.el --- Configuration management base classes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017 - 2020 Paul Landes
+;; Copyright (C) 2017 - 2021 Paul Landes
 
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
