@@ -91,6 +91,17 @@ The meta data property of a `config-prop-entry', which persists as a slot.")
 THIS is the instance."
   (slot-value this 'object-name))
 
+(cl-defmethod config-prop-type ((this config-prop))
+  "Return the type of the property as a symbol for THIS property.
+This base class returns 'string, otherwise it is taken from the name of the
+class."
+  (let* ((class (eieio-object-class this))
+	 (cname (symbol-name class))
+	 (from-name (string-match "^config-\\(.+\\)-prop$" cname)))
+    (cond ((eq class 'config-prop) 'string)
+	  ((not (null from-name)) (intern (match-string 1 cname)))
+	  (t class))))
+
 (cl-defmethod config-prop-default-input ((this config-prop))
   "Return the default string value for the default when prompting user input.
 THIS is the instance."
@@ -545,7 +556,7 @@ HEADER is a string written to describe the property, otherise the description
 is used."
   (setq level (or level 0))
   (with-slots (description) this
-    (insert (or header (format "%s configuration:" description)))
+    (insert (or header (format "[%s configuration]" description)))
     (newline)
     (dolist (prop (config-prop-by-order this))
       (let* ((name (config-prop-name prop))
@@ -566,6 +577,8 @@ is used."
       (config-prop-entry-write-configuration this)
       (read-only-mode 1)
       (display-buffer (current-buffer))
+      ;; for highlight only
+      (conf-mode)
       (current-buffer))))
 
 (provide 'config-manage-prop)
