@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
+## [1.0] - 2021-09-14
+Major release as the code base has been stable for a few years.
+
+### Changed
+- Better configuration property document generation.
+
+### Removed
+- Removed build package linting to fix (overly restrictive) GitHub workflow
+  CLI.
+
+
 ## [0.13] - 2021-09-13
 ### Changed
 - Fix/add default support for file and directory config properties.
@@ -94,7 +105,8 @@ First major release.
 
 
 <!-- links -->
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v0.13...HEAD
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v1.0...HEAD
+[1.0]: https://github.com/plandes/buffer-manage/compare/v0.13...v1.0
 [0.13]: https://github.com/plandes/buffer-manage/compare/v0.12...v0.13
 [0.12]: https://github.com/plandes/buffer-manage/compare/v0.11...v0.12
 [0.11]: https://github.com/plandes/buffer-manage/compare/v0.10...v0.11
