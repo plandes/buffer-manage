@@ -108,9 +108,10 @@ THIS is the instance."
   (with-slots (history input-type) this
     (if (boundp history)
 	(let ((val (symbol-value history)))
-	  (cl-case input-type
-	    (toggle (or (cl-second val) (cl-first val)))
-	    (last (cl-first val)))))))
+	  (cond ((eq input-type 'toggle) (or (cl-second val) (cl-first val)))
+		((eq input-type 'last) (cl-first val))
+		;; allow specific behavior by interpreting as a command
+		(t (call-interactively input-type)))))))
 
 (cl-defmethod config-prop-prompt ((this config-prop))
   "Return the prompt to use for user input.
