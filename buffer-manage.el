@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2015 - 2021 Paul Landes
 
-;; Version: 1.0
+;; Version: 1.1
 ;; Author: Paul Landes
 ;; Maintainer: Paul Landes
 ;; Keywords: internal maint
