@@ -56,7 +56,7 @@
 (defvar buffer-entry-instance)
 
 (defgroup buffer-manage nil
-  "Buffer management and tracking"
+  "Buffer management and tracking."
   :group 'buffer-manage
   :prefix "buffer-manage-")
 

@@ -56,7 +56,7 @@
   :type 'boolean)
 
 (defgroup config-manage-font-lock-faces nil
-  "Buffer Manage Faces"
+  "Buffer Manage Faces."
   :group 'config-manage
   :prefix "config-manage-font-lock-")
 
