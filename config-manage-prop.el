@@ -465,7 +465,7 @@ THIS is the instance."
 CONFIG-OPTIONS informs how to configure the prop-entry.  It is one of:
   - numeric argument (if any) passed in the iteractive mode with
     \\[universal-argument].
-  - Either nil or the symbol 'immediate, which prompts for the property to set
+  - Either nil or the symbol `immediate', which prompts for the property to set
     and then prompts and sets the property itself.
   - Form (prop-name <property to set>) prompts the specific property and value.
   - Form (prop-name <property to set> <value>) sets the specified
