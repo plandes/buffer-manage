@@ -286,7 +286,6 @@ THIS is the class instance."
       (insert (format "%s\n\n%s\n" description doc)))))
 
 
-
 
 ;; config manager
 
