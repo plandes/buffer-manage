@@ -195,7 +195,7 @@ Note this class was written before `eieio-persistent', which might be a better
 class to extend over this class.")
 
 (cl-defmethod config-persistable-save ((this config-persistable))
-  "Persist manager and compiler configuration using THIS instant."
+  "Persist manager and entry configuration using THIS instant."
   (with-slots (file) this
     (when file
       (let ((save-class-name (->> this eieio-object-class eieio-class-name))
@@ -262,9 +262,8 @@ THIS is the class instance."
   (ignore this))
 
 (cl-defmethod config-persistent-doc ((this config-entry) level)
-  "Write compiler documentation to the current buffer.
-LEVEL is the recursion level, which is used for formatting.
-THIS is the class instance."
+  "Write THIS entry's documentation to the current buffer.
+LEVEL is the recursion level, which is used for formatting."
   (with-slots (description) this
     (let ((doc (-> (eieio-object-class this)
 		   cl--find-class
