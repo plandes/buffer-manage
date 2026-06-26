@@ -93,8 +93,8 @@ THIS is the instance."
 
 (cl-defmethod config-prop-type ((this config-prop))
   "Return the type of the property as a symbol for THIS property.
-This base class returns 'string, otherwise it is taken from the name of the
-class."
+This base class returns symbol `string', otherwise it is taken from the name of
+the class."
   (let* ((class (eieio-object-class this))
 	 (cname (symbol-name class))
 	 (from-name (string-match "^config-\\(.+\\)-prop$" cname)))
@@ -306,7 +306,7 @@ THIS is the instance."
   (with-slots (history ignore-case) this
     (let ((choices (config-choice-prop-choices this)))
       (if (= 1 (length choices))
-	  (cadr choices)
+	  (cdar choices)
 	(let ((default (config-prop-default-input this))
 	      (prompt (config-prop-prompt this))
 	      (completion-ignore-case ignore-case))
@@ -460,7 +460,7 @@ THIS is the instance."
 
 (cl-defmethod config-prop-entry-configure ((this config-prop-entry)
 					   config-options)
-  "Configure the prop-entry.
+  "Configure THIS propery.
 
 CONFIG-OPTIONS informs how to configure the prop-entry.  It is one of:
   - numeric argument (if any) passed in the iteractive mode with
@@ -469,8 +469,7 @@ CONFIG-OPTIONS informs how to configure the prop-entry.  It is one of:
     and then prompts and sets the property itself.
   - Form (prop-name <property to set>) prompts the specific property and value.
   - Form (prop-name <property to set> <value>) sets the specified
-    property to the value.
-THIS is the instance."
+    property to the value."
   (let (prop val)
     (cond ((or (null config-options) (eq config-options 'immediate))
 	   (with-slots (props last-selection) this
@@ -510,8 +509,7 @@ If NAME is non-nil, only set the property with the name."
 		   (cons prop val)))))))
 
 (cl-defmethod config-persistent-reset ((this config-prop-entry))
-  "Wipe all values for the prop-entry.
-THIS is the instance."
+  "Wipe all values for THIS property."
   (dolist (prop (config-prop-by-order this))
     (config-prop-set this prop nil))
   (dolist (prop (config-prop-by-order this))
@@ -519,10 +517,9 @@ THIS is the instance."
   (message "Cleared %s configuration" (config-entry-name this)))
 
 (cl-defmethod config-persistent-doc ((this config-prop-entry) level)
-  "Return the prop-entry level documentation.
+  "Return the prop-entry level documentation for THIS property.
 See the :prop-entry-doc slot.
-LEVEL is the depth of this recursive call.
-THIS is the instance."
+LEVEL is the depth of this recursive call."
   (cl-call-next-method this level)
   (let ((props (config-prop-by-order this)))
     (when props
@@ -531,8 +528,7 @@ THIS is the instance."
 	(config-persistent-doc prop (1+ level))))))
 
 (cl-defmethod config-prop-entry-info ((this config-prop-entry))
-  "Create and display a buffer with the `prop-entry' documentation and config.
-THIS is the instance."
+  "Create and display documentation and config on THIS property."
   (with-current-buffer (->> (config-entry-name this)
 			    capitalize
 			    (format "%s Info")
