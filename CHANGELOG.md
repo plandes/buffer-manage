@@ -9,8 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 
-## [1.1] - 2021-11-22
+## [1.1.2] - 2026-06-26
+### Changed
+- Fix singleton choice list for class `config-choice-description-prop`.
+- Switched to major, minor, and debug version formatting.
 
+
+## [1.1] - 2021-11-22
 ### Added
 - Functionality to add invocation of commands for `config-prop` input types,
   which is the base class used to read a compiler property setting from the
@@ -113,7 +118,8 @@ First major release.
 
 
 <!-- links -->
-[Unreleased]: https://github.com/plandes/buffer-manage/compare/v1.1...HEAD
+[Unreleased]: https://github.com/plandes/buffer-manage/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/plandes/buffer-manage/compare/v1.1...v1.1.2
 [1.1]: https://github.com/plandes/buffer-manage/compare/v1.0...v1.1
 [1.0]: https://github.com/plandes/buffer-manage/compare/v0.13...v1.0
 [0.13]: https://github.com/plandes/buffer-manage/compare/v0.12...v0.13

@@ -1,9 +1,13 @@
-## makefile automates the build and deployment for Emacs Lisp projects
+#@meta {desc: "Emacs Lisp build configuration", date: "2026-06-26"}
 
+
+## Build system
+#
+#
 # type of project
-PROJ_TYPE=	elisp
+PROJ_TYPE =		emacs
 
-# turn off package linting for 'doesn't start with package's prefix' errors
-EL_SKIP_LINT =	1
 
+## Includes
+#
 include ./zenbuild/main.mk
